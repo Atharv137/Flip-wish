@@ -4,11 +4,20 @@ import { createServer as createViteServer } from "vite";
 import apiRouter from "./server/routes/api";
 import "dotenv/config";
 import connectDB from "./config/db.js";
+import cors from "cors";
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  
+  app.use(cors({
+    origin: [
+      "http://localhost:3000",
+      "https://flipwish.netlify.app"
+    ],
+    credentials: true
+  }));
 
+  const PORT = Number(process.env.PORT) || 3000;
   // Parse JSON and URL encoded payloads
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
