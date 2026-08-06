@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Product } from "../types";
 import { useCartWishlist } from "../context/CartWishlistContext";
+import { API_URL } from "../config";
 import { LayoutDashboard, Plus, Pencil, Trash2, CheckCircle, Package, AlertTriangle, Image as ImageIcon, Search, RefreshCw, X, HelpCircle } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -63,7 +64,7 @@ export const AdminDashboard: React.FC = () => {
   const fetchAllProducts = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/products?limit=100"); // fetch all
+      const res = await fetch(`${API_URL}/api/products?limit=100`); // fetch all
       if (res.ok) {
         const data = await res.json();
         setProducts(data.products);
@@ -172,7 +173,7 @@ export const AdminDashboard: React.FC = () => {
 
     try {
       const token = localStorage.getItem("flipkart_token");
-      const res = await fetch(`/api/products/${productId}`, {
+      const res = await fetch(`${API_URL}/api/products/${productId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`

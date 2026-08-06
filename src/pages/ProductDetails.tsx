@@ -4,6 +4,7 @@ import { Product } from "../types";
 import { useCartWishlist } from "../context/CartWishlistContext";
 import { Star, Heart, ShoppingCart, Truck, ShieldCheck, RefreshCw, Award, ArrowLeft } from "lucide-react";
 import { motion } from "motion/react";
+import { API_URL } from "../config";
 
 interface Recommendation {
   name: string;
@@ -27,7 +28,7 @@ export const ProductDetails: React.FC = () => {
     const fetchProduct = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/products/${id}`);
+        const res = await fetch(`${API_URL}/api/products/${id}`);
         if (res.ok) {
           const data = await res.json();
           setProduct(data);
@@ -98,7 +99,7 @@ export const ProductDetails: React.FC = () => {
     setIsRecommending(true);
     setRecommendations(null);
     try {
-      const res = await fetch("/api/ai/recommend", {
+      const res = await fetch(`${API_URL}/api/ai/recommend`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

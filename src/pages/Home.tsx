@@ -4,6 +4,7 @@ import { Product, PaginationData, SortOption } from "../types";
 import { ProductCard } from "../components/ProductCard";
 import { SlidersHorizontal, ChevronLeft, ChevronRight, X, Sparkles, Flame, Percent, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { API_URL } from "../config";
 
 const CATEGORIES = [
   "All",
@@ -115,7 +116,7 @@ export const Home: React.FC = () => {
       queryParams.append("page", String(page));
       queryParams.append("limit", "8");
 
-      const response = await fetch(`/api/products?${queryParams.toString()}`);
+      const response = await fetch(`${API_URL}/api/products?${queryParams.toString()}`);
       if (response.ok) {
         const data = await response.json();
         setProducts(data.products);

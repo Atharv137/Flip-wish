@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import { WishlistItem, CartItem, Product } from "../types";
 import { useAuth } from "./AuthContext";
+import { API_URL } from "../config";
 
 export interface ToastMessage {
   id: string;
@@ -73,7 +74,7 @@ export const CartWishlistProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const fetchWishlist = async () => {
     if (!isAuthenticated) return;
     try {
-      const res = await fetch("/api/wishlist", { headers: getHeaders() });
+      const res = await fetch(`${API_URL}/api/wishlist`, { headers: getHeaders() });
       if (res.ok) {
         const data = await res.json();
         setWishlist(data);
@@ -86,7 +87,7 @@ export const CartWishlistProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const fetchCart = async () => {
     if (!isAuthenticated) return;
     try {
-      const res = await fetch("/api/cart", { headers: getHeaders() });
+      const res = await fetch(`${API_URL}/api/cart`, { headers: getHeaders() });
       if (res.ok) {
         const data = await res.json();
         // The API returns { cartItems: [...], summary: {...} }
@@ -115,7 +116,7 @@ export const CartWishlistProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     try {
       const productIds = wishlist.map((item) => item.productId);
-      const res = await fetch("/api/wishlist/check-stock", {
+      const res = await fetch(`${API_URL}/api/wishlist/check-stock`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productIds })
@@ -180,7 +181,7 @@ export const CartWishlistProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return false;
     }
     try {
-      const res = await fetch("/api/wishlist", {
+      const res = await fetch(`${API_URL}/api/wishlist`, {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({ productId })
@@ -203,7 +204,7 @@ export const CartWishlistProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const removeFromWishlist = async (wishlistOrProductId: string): Promise<boolean> => {
     try {
-      const res = await fetch(`/api/wishlist/${wishlistOrProductId}`, {
+      const res = await fetch(`${API_URL}/api/wishlist/${wishlistOrProductId}`, {
         method: "DELETE",
         headers: getHeaders()
       });
@@ -230,7 +231,7 @@ export const CartWishlistProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return false;
     }
     try {
-      const res = await fetch("/api/cart", {
+      const res = await fetch(`${API_URL}/api/cart`, {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({ productId, quantity })
@@ -253,7 +254,7 @@ export const CartWishlistProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const updateCartQuantity = async (cartItemId: string, newQty: number): Promise<boolean> => {
     try {
-      const res = await fetch(`/api/cart/${cartItemId}`, {
+      const res = await fetch(`${API_URL}/api/cart/${cartItemId}`, {
         method: "PATCH",
         headers: getHeaders(),
         body: JSON.stringify({ quantity: newQty })
@@ -278,7 +279,7 @@ export const CartWishlistProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const removeFromCart = async (cartItemId: string): Promise<boolean> => {
     try {
-      const res = await fetch(`/api/cart/${cartItemId}`, {
+      const res = await fetch(`${API_URL}/api/cart/${cartItemId}`, {
         method: "DELETE",
         headers: getHeaders()
       });
@@ -343,7 +344,7 @@ export const CartWishlistProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     try {
       // 4. Fire API calls: First add to cart, then remove from wishlist
-      const addRes = await fetch("/api/cart", {
+      const addRes = await fetch(`${API_URL}/api/cart`, {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({ productId: item.productId, quantity: 1 })
@@ -357,7 +358,7 @@ export const CartWishlistProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
 
       // Now delete from wishlist in backend
-      const deleteRes = await fetch(`/api/wishlist/${item.id}`, {
+      const deleteRes = await fetch(`${API_URL}/api/wishlist/${item.id}`, {
         method: "DELETE",
         headers: getHeaders()
       });
@@ -386,7 +387,7 @@ export const CartWishlistProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const checkoutCart = async (): Promise<boolean> => {
     try {
-      const res = await fetch("/api/cart/checkout", {
+      const res = await fetch(`${API_URL}/api/cart/checkout`, {
         method: "POST",
         headers: getHeaders()
       });
