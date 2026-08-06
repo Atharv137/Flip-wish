@@ -1,0 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Global Reset overrides for "Bold Typography" Theme */
+@layer base {
+  body {
+    background-color: #F1F3F6;
+    color: #212121;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Extreme heavy weights for titles to emphasize Bold Typography */
+  h1, .text-xl, .text-2xl, .text-3xl {
+    font-weight: 800 !important;
+    letter-spacing: -0.02em !important;
+  }
+  
+  h2, .text-lg {
+    font-weight: 800 !important;
+    letter-spacing: -0.015em !important;
+  }
+
+  h3, h4, h5, h6, .text-base {
+    font-weight: 700 !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  /* Make primary/secondary buttons chunky with bold uppercase text and small border-radius */
+  button, 
+  a.bg-[#FB641B], 
+  a.bg-[#2874F0], 
+  button.bg-[#FB641B], 
+  button.bg-[#2874F0], 
+  button.bg-emerald-600 {
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+    border-radius: 2px !important; /* Sharp corners as in design */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  }
+
+  /* Smooth transition for hover effects */
+  button, a {
+    transition: all 0.2s ease-in-out !important;
+  }
+
+  /* Sharp corners for cards, panels and inputs to match the bold technical style */
+  .rounded-lg, .rounded-md, .rounded {
+    border-radius: 4px !important;
+  }
+
+  /* Solid inputs with focus rings */
+  input, select, textarea {
+    border-radius: 2px !important;
+    border-width: 1.5px !important;
+    border-color: #cbd5e1 !important;
+    font-weight: 500 !important;
+  }
+  
+  input:focus, select:focus, textarea:focus {
+    border-color: #2874F0 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(40, 116, 240, 0.15) !important;
+  }
+}
+
+/* Custom shadow effects for containers and cards */
+.shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl {
+  box-shadow: 0 4px 0px 0px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Specific product cards should pop with heavy borders on hover */
+.group:hover {
+  border-color: #2874F0 !important;
+  box-shadow: 0 8px 0px 0px rgba(40, 116, 240, 0.08), 0 10px 20px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Highlight filters and active chips */
+.bg-slate-100 {
+  border: 1px solid #cbd5e1 !important;
+  font-weight: 700 !important;
+  border-radius: 9999px !important;
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Smart Wishlist E-commerce",
+  "description": "A premium Flipkart-inspired e-commerce platform with active stock monitoring, optimistic wishlist-to-cart operations, and admin controls.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
