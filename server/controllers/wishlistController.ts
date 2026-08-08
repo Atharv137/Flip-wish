@@ -95,3 +95,31 @@ export async function removeFromWishlist(req: Request, res: Response): Promise<a
     return res.status(500).json({ error: "Internal server error removing from wishlist" });
   }
 }
+
+export async function checkWishlistStock(req: Request, res: Response): Promise<any> {
+  try {
+    const { productIds } = req.body;
+    
+    if (!Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({ error: "Invalid product IDs array" });
+    }
+    
+    const products = await prisma.product.findMany({
+      where: {
+        id: { in: productIds }
+      },
+      select: {
+        id: true,
+        stock: true
+      }
+    });
+    
+    // Map id to _id for frontend compatibility
+    const mappedStock = products.map(p => ({ _id: p.id, stock: p.stock }));
+    
+    return res.status(200).json({ stockInfo: mappedStock });
+  } catch (error) {
+    console.error("Check wishlist stock error:", error);
+    return res.status(500).json({ error: "Internal server error checking wishlist stock" });
+  }
+}

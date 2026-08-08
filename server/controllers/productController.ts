@@ -81,3 +81,70 @@ export async function getProductById(req: Request, res: Response): Promise<any> 
     return res.status(500).json({ error: "Internal server error fetching product" });
   }
 }
+
+export async function createProduct(req: Request, res: Response): Promise<any> {
+  try {
+    const { title, description, brand, category, price, originalPrice, discount, stock, rating, reviews, image, featured } = req.body;
+    
+    const newProduct = await prisma.product.create({
+      data: {
+        title,
+        description: description || "",
+        brand: brand || "",
+        category: category || "",
+        price: Number(price) || 0,
+        originalPrice: Number(originalPrice) || 0,
+        discount: Number(discount) || 0,
+        stock: Number(stock) || 0,
+        rating: Number(rating) || 0,
+        reviews: Number(reviews) || 0,
+        image: image || "",
+        featured: Boolean(featured)
+      }
+    });
+    
+    return res.status(201).json({ message: "Product created", product: { ...newProduct, _id: newProduct.id } });
+  } catch (error) {
+    console.error("Create product error:", error);
+    return res.status(500).json({ error: "Internal server error creating product" });
+  }
+}
+
+export async function updateProduct(req: Request, res: Response): Promise<any> {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    const existing = await prisma.product.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+    
+    const updatedProduct = await prisma.product.update({
+      where: { id },
+      data: updateData
+    });
+    
+    return res.status(200).json({ message: "Product updated", product: { ...updatedProduct, _id: updatedProduct.id } });
+  } catch (error) {
+    console.error("Update product error:", error);
+    return res.status(500).json({ error: "Internal server error updating product" });
+  }
+}
+
+export async function deleteProduct(req: Request, res: Response): Promise<any> {
+  try {
+    const { id } = req.params;
+    
+    const existing = await prisma.product.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+    
+    await prisma.product.delete({ where: { id } });
+    return res.status(200).json({ message: "Product deleted" });
+  } catch (error) {
+    console.error("Delete product error:", error);
+    return res.status(500).json({ error: "Internal server error deleting product" });
+  }
+}
