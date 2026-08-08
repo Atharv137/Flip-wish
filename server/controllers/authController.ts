@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import User from "../../models/User.js";
-import { hashPassword, generateToken } from "../utils/authHelper";
+import { hashPassword, generateToken } from "../utils/authHelper.js";
+import { prisma } from "../config/prisma.js";
 
 export async function signup(req: Request, res: Response): Promise<any> {
   try {
@@ -36,6 +37,16 @@ export async function signup(req: Request, res: Response): Promise<any> {
     });
     await newUser.save();
 
+    // Sync to PostgreSQL for relational foreign key constraints
+    await prisma.user.create({
+      data: {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        password: passwordHash
+      }
+    });
+
     const token = generateToken(newUser.id);
 
     return res.status(201).json({
@@ -69,6 +80,19 @@ export async function login(req: Request, res: Response): Promise<any> {
     const enteredHash = hashPassword(password);
     if (user.password !== enteredHash) {
       return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    // Ensure user exists in Postgres (sync for existing Mongo users)
+    const pgUser = await prisma.user.findUnique({ where: { id: user.id } });
+    if (!pgUser) {
+      await prisma.user.create({
+        data: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          password: user.password
+        }
+      });
     }
 
     const token = generateToken(user.id);

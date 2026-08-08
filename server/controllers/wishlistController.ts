@@ -1,16 +1,29 @@
 import { Request, Response } from "express";
-import Wishlist from "../../models/Wishlist.js";
-import Product from "../../models/Product.js";
+import { prisma } from "../config/prisma.js";
 
 export async function getWishlist(req: Request, res: Response): Promise<any> {
   try {
     const userId = (req as any).userId;
     
-    // Fetch and populate product info
-    const wishlistItems = await Wishlist.find({ user: userId })
-      .populate("product");
+    // Fetch and populate product info using Prisma (SQL JOIN equivalent)
+    const wishlistItems = await prisma.wishlist.findMany({
+      where: { userId },
+      include: {
+        product: true
+      }
+    });
 
-    return res.status(200).json(wishlistItems);
+    // Map Prisma id to _id for frontend backward compatibility
+    const mappedItems = wishlistItems.map(item => ({
+      ...item,
+      _id: item.id,
+      product: {
+        ...item.product,
+        _id: item.product.id
+      }
+    }));
+
+    return res.status(200).json({ wishlistItems: mappedItems });
   } catch (error) {
     console.error("Get wishlist error:", error);
     return res.status(500).json({ error: "Internal server error fetching wishlist" });
@@ -26,23 +39,34 @@ export async function addToWishlist(req: Request, res: Response): Promise<any> {
       return res.status(400).json({ error: "Product ID is required" });
     }
 
-    const product = await Product.findById(productId);
+    const product = await prisma.product.findUnique({ where: { id: productId } });
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }
 
-    // Check if already in wishlist
-    const existing = await Wishlist.findOne({ user: userId, product: productId });
+    const existing = await prisma.wishlist.findUnique({
+      where: {
+        userId_productId: {
+          userId,
+          productId
+        }
+      }
+    });
+
     if (existing) {
-      return res.status(200).json({ message: "Product is already in wishlist", wishlist: existing });
+      return res.status(400).json({ error: "Product is already in wishlist" });
     }
 
-    const newWish = new Wishlist({ user: userId, product: productId });
-    await newWish.save();
-    
+    const newWishlistItem = await prisma.wishlist.create({
+      data: {
+        userId,
+        productId
+      }
+    });
+
     return res.status(201).json({
       message: "Added to wishlist",
-      wishlist: newWish
+      wishlistItem: { ...newWishlistItem, _id: newWishlistItem.id }
     });
   } catch (error) {
     console.error("Add to wishlist error:", error);
@@ -53,22 +77,19 @@ export async function addToWishlist(req: Request, res: Response): Promise<any> {
 export async function removeFromWishlist(req: Request, res: Response): Promise<any> {
   try {
     const userId = (req as any).userId;
-    const { id } = req.params; // Can be Wishlist Record ID or Product ID
+    const { id } = req.params;
 
-    // Try finding by Wishlist ID
-    let wish = await Wishlist.findOne({ _id: id, user: userId });
-    
-    // If not found, try finding by Product ID
-    if (!wish) {
-      wish = await Wishlist.findOne({ product: id, user: userId });
-    }
+    const wishlistItem = await prisma.wishlist.findFirst({
+      where: { id, userId }
+    });
 
-    if (!wish) {
+    if (!wishlistItem) {
       return res.status(404).json({ error: "Wishlist item not found" });
     }
 
-    await Wishlist.findByIdAndDelete(wish._id);
-    return res.status(200).json({ message: "Removed from wishlist", id: wish._id, productId: wish.product });
+    await prisma.wishlist.delete({ where: { id } });
+
+    return res.status(200).json({ message: "Item removed from wishlist", id });
   } catch (error) {
     console.error("Remove from wishlist error:", error);
     return res.status(500).json({ error: "Internal server error removing from wishlist" });
@@ -78,26 +99,27 @@ export async function removeFromWishlist(req: Request, res: Response): Promise<a
 export async function checkWishlistStock(req: Request, res: Response): Promise<any> {
   try {
     const { productIds } = req.body;
-
-    if (!productIds || !Array.isArray(productIds)) {
-      return res.status(400).json({ error: "Product IDs array is required" });
+    
+    if (!Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({ error: "Invalid product IDs array" });
     }
-
-    const stockMap: Record<string, { stock: number; price: number; originalPrice: number }> = {};
     
-    const products = await Product.find({ _id: { $in: productIds } });
-    
-    products.forEach((product: any) => {
-      stockMap[product._id.toString()] = {
-        stock: product.stock,
-        price: product.price,
-        originalPrice: product.originalPrice
-      };
+    const products = await prisma.product.findMany({
+      where: {
+        id: { in: productIds }
+      },
+      select: {
+        id: true,
+        stock: true
+      }
     });
-
-    return res.status(200).json({ stockMap });
+    
+    // Map id to _id for frontend compatibility
+    const mappedStock = products.map(p => ({ _id: p.id, stock: p.stock }));
+    
+    return res.status(200).json({ stockInfo: mappedStock });
   } catch (error) {
-    console.error("Check stock error:", error);
-    return res.status(500).json({ error: "Internal server error checking stock levels" });
+    console.error("Check wishlist stock error:", error);
+    return res.status(500).json({ error: "Internal server error checking wishlist stock" });
   }
 }

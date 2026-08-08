@@ -1,24 +1,33 @@
 import { Request, Response } from "express";
-import Cart from "../../models/Cart.js";
-import Product from "../../models/Product.js";
-import mongoose from "mongoose";
+import { prisma } from "../config/prisma.js";
 
 export async function getCart(req: Request, res: Response): Promise<any> {
   try {
     const userId = (req as any).userId;
     
-    // Fetch and populate product info
-    const populated = await Cart.find({ user: userId }).populate("product");
+    // Fetch and populate product info using Prisma (Demonstrates SQL JOIN)
+    // Prisma internally uses an SQL JOIN to fetch the related Product for each Cart item
+    const cartItems = await prisma.cart.findMany({
+      where: { userId },
+      include: {
+        product: true
+      }
+    });
 
-    // Add aggregation pipeline to calculate total quantity in cart
-    const aggregationResult = await Cart.aggregate([
-      { $match: { user: new mongoose.Types.ObjectId(userId) } },
-      { $group: { _id: "$user", totalQuantity: { $sum: "$quantity" } } }
-    ]);
-    const totalQuantity = aggregationResult.length > 0 ? aggregationResult[0].totalQuantity : 0;
+    const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+    // Map Prisma id to _id for frontend backward compatibility
+    const mappedItems = cartItems.map(item => ({
+      ...item,
+      _id: item.id,
+      product: {
+        ...item.product,
+        _id: item.product.id
+      }
+    }));
 
     return res.status(200).json({
-      cartItems: populated,
+      cartItems: mappedItems,
       summary: {
         totalQuantity
       }
@@ -38,9 +47,9 @@ export async function addToCart(req: Request, res: Response): Promise<any> {
       return res.status(400).json({ error: "Product ID is required" });
     }
 
-    const product: any = await Product.findById(productId);
+    const product = await prisma.product.findUnique({ where: { id: productId } });
     if (!product) {
-      return res.status(404).json({ error: "Product not found" }); // Fixed from 444 to 404
+      return res.status(404).json({ error: "Product not found" });
     }
 
     if (product.stock <= 0) {
@@ -48,20 +57,31 @@ export async function addToCart(req: Request, res: Response): Promise<any> {
     }
 
     // Check if item is already in cart
-    const existing = await Cart.findOne({ user: userId, product: productId });
+    const existing = await prisma.cart.findUnique({
+      where: {
+        userId_productId: {
+          userId,
+          productId
+        }
+      }
+    });
     
     if (existing) {
-      const newQuantity = (existing.quantity || 1) + Number(quantity);
+      const newQuantity = existing.quantity + Number(quantity);
       if (newQuantity > product.stock) {
         return res.status(400).json({
           error: `Cannot add more items. Only ${product.stock} left in stock.`
         });
       }
-      existing.quantity = newQuantity;
-      await existing.save();
+      
+      const updatedCartItem = await prisma.cart.update({
+        where: { id: existing.id },
+        data: { quantity: newQuantity }
+      });
+      
       return res.status(200).json({
         message: "Cart updated",
-        cartItem: existing
+        cartItem: { ...updatedCartItem, _id: updatedCartItem.id }
       });
     }
 
@@ -71,16 +91,17 @@ export async function addToCart(req: Request, res: Response): Promise<any> {
       });
     }
 
-    const newCartItem = new Cart({
-      user: userId,
-      product: productId,
-      quantity: Number(quantity)
+    const newCartItem = await prisma.cart.create({
+      data: {
+        userId,
+        productId,
+        quantity: Number(quantity)
+      }
     });
-    await newCartItem.save();
 
     return res.status(201).json({
       message: "Added to cart",
-      cartItem: newCartItem
+      cartItem: { ...newCartItem, _id: newCartItem.id }
     });
   } catch (error) {
     console.error("Add to cart error:", error);
@@ -98,15 +119,17 @@ export async function updateCartItem(req: Request, res: Response): Promise<any> 
       return res.status(400).json({ error: "Quantity must be greater than zero" });
     }
 
-    const cartItem = await Cart.findOne({ _id: id, user: userId });
+    // Verify cart item belongs to user
+    const cartItem = await prisma.cart.findFirst({
+      where: { id, userId },
+      include: { product: true }
+    });
+    
     if (!cartItem) {
       return res.status(404).json({ error: "Cart item not found" });
     }
 
-    const product: any = await Product.findById(cartItem.product);
-    if (!product) {
-      return res.status(404).json({ error: "Product associated with cart item not found" });
-    }
+    const product = cartItem.product;
 
     if (product.stock <= 0) {
       return res.status(400).json({ error: "Product is out of stock." });
@@ -118,12 +141,14 @@ export async function updateCartItem(req: Request, res: Response): Promise<any> 
       });
     }
 
-    cartItem.quantity = Number(quantity);
-    await cartItem.save();
+    const updatedCartItem = await prisma.cart.update({
+      where: { id },
+      data: { quantity: Number(quantity) }
+    });
 
     return res.status(200).json({
       message: "Cart item updated",
-      cartItem
+      cartItem: { ...updatedCartItem, _id: updatedCartItem.id }
     });
   } catch (error) {
     console.error("Update cart item error:", error);
@@ -136,10 +161,13 @@ export async function deleteCartItem(req: Request, res: Response): Promise<any> 
     const userId = (req as any).userId;
     const { id } = req.params;
 
-    const cartItem = await Cart.findOneAndDelete({ _id: id, user: userId });
+    // Check if it exists and belongs to user
+    const cartItem = await prisma.cart.findFirst({ where: { id, userId } });
     if (!cartItem) {
       return res.status(404).json({ error: "Cart item not found" });
     }
+    
+    await prisma.cart.delete({ where: { id } });
 
     return res.status(200).json({ message: "Item removed from cart", id });
   } catch (error) {
@@ -151,7 +179,11 @@ export async function deleteCartItem(req: Request, res: Response): Promise<any> 
 export async function checkout(req: Request, res: Response): Promise<any> {
   try {
     const userId = (req as any).userId;
-    const cartItems = await Cart.find({ user: userId });
+    
+    const cartItems = await prisma.cart.findMany({
+      where: { userId },
+      include: { product: true }
+    });
 
     if (cartItems.length === 0) {
       return res.status(400).json({ error: "Cart is empty" });
@@ -159,9 +191,8 @@ export async function checkout(req: Request, res: Response): Promise<any> {
 
     const failedItems: string[] = [];
     for (const item of cartItems) {
-      const product: any = await Product.findById(item.product);
-      if (!product || product.stock < (item.quantity || 1)) {
-        failedItems.push(product ? product.title || product.name : "Unknown item");
+      if (item.product.stock < item.quantity) {
+        failedItems.push(item.product.title);
       }
     }
 
@@ -171,17 +202,17 @@ export async function checkout(req: Request, res: Response): Promise<any> {
       });
     }
 
-    // Deduct stock
-    for (const item of cartItems) {
-      const product: any = await Product.findById(item.product);
-      if (product) {
-        product.stock = Math.max(0, product.stock - (item.quantity || 1));
-        await product.save();
+    // Deduct stock and clear cart (Prisma Transaction is perfect here for database consistency, but we'll use a sequential loop for simplicity unless a transaction is strictly preferred)
+    // We can showcase a Prisma transaction to be even better!
+    await prisma.$transaction(async (tx) => {
+      for (const item of cartItems) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: Math.max(0, item.product.stock - item.quantity) }
+        });
       }
-    }
-
-    // Clear cart
-    await Cart.deleteMany({ user: userId });
+      await tx.cart.deleteMany({ where: { userId } });
+    });
 
     return res.status(200).json({ message: "Order placed successfully!" });
   } catch (error) {
