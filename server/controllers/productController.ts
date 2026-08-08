@@ -3,60 +3,105 @@ import { prisma } from "../config/prisma.js";
 
 export async function getProducts(req: Request, res: Response): Promise<any> {
   try {
-    const { 
-      category, 
-      search, 
-      minPrice, 
-      maxPrice, 
-      sort, 
-      featured 
+    const {
+      search,
+      category,
+      brand,
+      minPrice,
+      maxPrice,
+      rating,
+      inStock,
+      sortBy,
+      page = "1",
+      limit = "8"
     } = req.query;
 
     const where: any = {};
 
-    if (category && category !== "All") {
-      where.category = category as string;
-    }
-
+    // 1. Live Search
     if (search) {
+      const q = String(search);
       where.OR = [
-        { title: { contains: search as string, mode: 'insensitive' } },
-        { description: { contains: search as string, mode: 'insensitive' } },
-        { brand: { contains: search as string, mode: 'insensitive' } }
+        { title: { contains: q, mode: 'insensitive' } },
+        { brand: { contains: q, mode: 'insensitive' } },
+        { category: { contains: q, mode: 'insensitive' } }
       ];
     }
 
-    if (minPrice !== undefined || maxPrice !== undefined) {
+    // 2. Filters
+    if (category && category !== "All") {
+      where.category = { in: String(category).split(",") };
+    }
+
+    if (brand) {
+      where.brand = { in: String(brand).split(",") };
+    }
+
+    if (minPrice || maxPrice) {
       where.price = {};
-      if (minPrice !== undefined) where.price.gte = Number(minPrice);
-      if (maxPrice !== undefined) where.price.lte = Number(maxPrice);
+      if (minPrice) where.price.gte = Number(minPrice);
+      if (maxPrice) where.price.lte = Number(maxPrice);
     }
 
-    if (featured === "true") {
-      where.featured = true;
+    if (rating) {
+      where.rating = { gte: Number(rating) };
     }
 
+    if (inStock === "true") {
+      where.stock = { gt: 0 };
+    }
+
+    // 3. Sorting
     let orderBy: any = {};
-    if (sort === "price-low") {
-      orderBy = { price: 'asc' };
-    } else if (sort === "price-high") {
-      orderBy = { price: 'desc' };
-    } else if (sort === "rating") {
-      orderBy = { rating: 'desc' };
-    } else if (sort === "newest") {
-      orderBy = { createdAt: 'desc' };
+    if (sortBy) {
+      switch (sortBy) {
+        case "priceLowToHigh":
+          orderBy = { price: 'asc' };
+          break;
+        case "priceHighToLow":
+          orderBy = { price: 'desc' };
+          break;
+        case "highestRated":
+          orderBy = { rating: 'desc' };
+          break;
+        case "popularity":
+          orderBy = { reviews: 'desc' };
+          break;
+        case "newest":
+        default:
+          orderBy = { createdAt: 'desc' };
+          break;
+      }
     } else {
       orderBy = { createdAt: 'desc' };
     }
 
+    // 4. Pagination
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 8;
+    const skip = (pageNum - 1) * limitNum;
+
     const products = await prisma.product.findMany({
       where,
-      orderBy
+      orderBy,
+      skip,
+      take: limitNum
     });
+
+    const totalProducts = await prisma.product.count({ where });
+    const totalPages = Math.ceil(totalProducts / limitNum);
 
     const mappedProducts = products.map(p => ({ ...p, _id: p.id }));
 
-    return res.status(200).json({ products: mappedProducts });
+    return res.status(200).json({
+      products: mappedProducts,
+      pagination: {
+        totalProducts,
+        totalPages,
+        currentPage: pageNum,
+        limit: limitNum
+      }
+    });
   } catch (error) {
     console.error("Get products error:", error);
     return res.status(500).json({ error: "Internal server error fetching products" });
@@ -75,7 +120,7 @@ export async function getProductById(req: Request, res: Response): Promise<any> 
       return res.status(404).json({ error: "Product not found" });
     }
 
-    return res.status(200).json({ product: { ...product, _id: product.id } });
+    return res.status(200).json({ ...product, _id: product.id });
   } catch (error) {
     console.error("Get product by ID error:", error);
     return res.status(500).json({ error: "Internal server error fetching product" });

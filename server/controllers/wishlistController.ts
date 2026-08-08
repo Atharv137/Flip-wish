@@ -23,7 +23,7 @@ export async function getWishlist(req: Request, res: Response): Promise<any> {
       }
     }));
 
-    return res.status(200).json({ wishlistItems: mappedItems });
+    return res.status(200).json(mappedItems);
   } catch (error) {
     console.error("Get wishlist error:", error);
     return res.status(500).json({ error: "Internal server error fetching wishlist" });
@@ -110,14 +110,22 @@ export async function checkWishlistStock(req: Request, res: Response): Promise<a
       },
       select: {
         id: true,
-        stock: true
+        stock: true,
+        price: true,
+        originalPrice: true
       }
     });
     
-    // Map id to _id for frontend compatibility
-    const mappedStock = products.map(p => ({ _id: p.id, stock: p.stock }));
+    const stockMap: Record<string, any> = {};
+    products.forEach((product: any) => {
+      stockMap[product.id] = {
+        stock: product.stock,
+        price: product.price,
+        originalPrice: product.originalPrice
+      };
+    });
     
-    return res.status(200).json({ stockInfo: mappedStock });
+    return res.status(200).json({ stockMap });
   } catch (error) {
     console.error("Check wishlist stock error:", error);
     return res.status(500).json({ error: "Internal server error checking wishlist stock" });
