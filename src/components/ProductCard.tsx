@@ -41,13 +41,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     }
   };
 
-  const formatPrice = (num: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0
-    }).format(num);
-  };
+  // The formatProductPrice function is called here before it is defined below,
+  // demonstrating JavaScript function declaration hoisting.
+  const priceFormatted = formatProductPrice(product.price ?? 0);
+  const originalPriceFormatted = formatProductPrice(product.originalPrice ?? 0);
 
   // Determine stock labels
   const isOutOfStock = product.stock === 0;
@@ -128,12 +125,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           {/* Price Layout */}
           <div className="mt-auto flex items-baseline gap-2 flex-wrap">
             <span className="text-slate-900 text-base font-bold">
-              {formatPrice(product.price ?? 0)}
+              {priceFormatted}
             </span>
             {(product.discount ?? 0) > 0 && (
               <>
                 <span className="text-[#878787] text-xs line-through">
-                  {formatPrice(product.originalPrice ?? 0)}
+                  {originalPriceFormatted}
                 </span>
                 <span className="text-emerald-600 text-xs font-bold">
                   {product.discount}% off
@@ -170,3 +167,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     </motion.div>
   );
 };
+
+// JavaScript Concept: Hoisting
+// Function declarations are hoisted to the top of their scope,
+// allowing them to be safely called before they are defined in the code.
+function formatProductPrice(num: number): string {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0
+  }).format(num);
+}

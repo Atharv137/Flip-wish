@@ -5,6 +5,7 @@ import { ProductCard } from "../components/ProductCard";
 import { SlidersHorizontal, ChevronLeft, ChevronRight, X, Sparkles, Flame, Percent, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { API_URL } from "../config";
+import { simulateDataProcessingPromise } from "../utils/asyncHelpers";
 
 const CATEGORIES = [
   "All",
@@ -116,6 +117,24 @@ export const Home: React.FC = () => {
       queryParams.append("page", String(page));
       queryParams.append("limit", "8");
 
+      // --- JAVASCRIPT CONCEPT: EVENT LOOP ---
+      // Demonstrating synchronous vs microtask vs macrotask execution in the frontend
+      console.log("Event Loop Demo: 1. [Sync] Starting products fetch setup...");
+      setTimeout(() => {
+        console.log("Event Loop Demo: 4. [Macrotask] Timer completed (setTimeout).");
+      }, 0);
+      Promise.resolve().then(() => {
+        console.log("Event Loop Demo: 3. [Microtask] Promise resolved.");
+      });
+      console.log("Event Loop Demo: 2. [Sync] Finished setup. Awaiting API response...");
+      
+      // --- JAVASCRIPT CONCEPT: PROMISES VS CALLBACKS ---
+      // Executing the Promise-based utility from asyncHelpers
+      const asyncHelperResult = await simulateDataProcessingPromise("Frontend filters loaded");
+      console.log("Promise Utility Result:", asyncHelperResult);
+
+      // --- JAVASCRIPT CONCEPT: ASYNC/AWAIT ---
+      // Real API call using async/await syntax naturally
       const response = await fetch(`${API_URL}/api/products?${queryParams.toString()}`);
       if (response.ok) {
         const data = await response.json();
