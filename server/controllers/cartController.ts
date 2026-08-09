@@ -14,7 +14,8 @@ export async function getCart(req: Request, res: Response): Promise<any> {
       }
     });
 
-    const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    // Demonstrating JavaScript Hoisting: function declaration is used before definition
+    const totalQuantity = calculateTotalQuantity(cartItems);
 
     // Map Prisma id to _id for frontend backward compatibility
     const mappedItems = cartItems.map(item => ({
@@ -219,4 +220,10 @@ export async function checkout(req: Request, res: Response): Promise<any> {
     console.error("Checkout error:", error);
     return res.status(500).json({ error: "Internal server error placing order" });
   }
+}
+
+// Demonstrating JavaScript Hoisting: 
+// This function declaration is hoisted, allowing it to be called earlier in the file (e.g., in getCart)
+function calculateTotalQuantity(items: any[]): number {
+  return items.reduce((sum, item) => sum + item.quantity, 0);
 }
