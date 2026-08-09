@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import Product from "../models/Product.js";
+import connectDB from "./config/db.js";
+import { config } from "./config/env.js";
 
-dotenv.config();
-
-const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/smart-wishlist";
+const MONGO_URI = config.mongoUri;
 
 // Ensure exact match with frontend categories
 // "Smartphones", "Laptops", "Tablets", "Smart Watches", "Earbuds", "Headphones", "Cameras", "Gaming Consoles", "Monitors", "Speakers", "Keyboards", "Mouse"

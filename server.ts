@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import apiRouter from "./server/routes/api";
-import "dotenv/config";
+import { config } from "./server/config/env";
 import connectDB from "./config/db.js";
 import cors from "cors";
 
@@ -17,7 +17,7 @@ async function startServer() {
     credentials: true
   }));
 
-  const PORT = Number(process.env.PORT) || 3000;
+  const PORT = config.port;
   // Parse JSON and URL encoded payloads
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
@@ -26,7 +26,7 @@ async function startServer() {
   app.use("/api", apiRouter);
 
   // Vite middleware integration for Dev, Static serving for Production
-  if (process.env.NODE_ENV !== "production") {
+  if (config.nodeEnv !== "production") {
     console.log("Starting server in DEVELOPMENT mode with Vite Middleware...");
     const vite = await createViteServer({
       server: { middlewareMode: true },

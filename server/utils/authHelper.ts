@@ -1,6 +1,7 @@
 import crypto from "crypto";
+import { config } from "../config/env";
 
-const SECRET = process.env.GEMINI_API_KEY || "flipkart_secret_key_123!@#";
+const SECRET = config.jwtSecret;
 
 export function hashPassword(password: string): string {
   return crypto.createHash("sha256").update(password).digest("hex");

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { GoogleGenAI } from "@google/genai";
+import { config } from "../config/env";
 
 export async function recommendProducts(req: Request, res: Response): Promise<any> {
   try {
@@ -9,7 +10,7 @@ export async function recommendProducts(req: Request, res: Response): Promise<an
       return res.status(400).json({ error: "Product name, category, and price are required." });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = config.geminiApiKey;
     if (!apiKey) {
       return res.status(500).json({ error: "Gemini API key is not configured." });
     }
