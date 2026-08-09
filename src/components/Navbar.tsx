@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
+import { useSearchDebounce } from "../hooks/useSearchDebounce";
 import { useAuth } from "../context/AuthContext";
 import { useCartWishlist } from "../context/CartWishlistContext";
 import { Heart, ShoppingCart, User, LogOut, LayoutDashboard, Search, ShoppingBag } from "lucide-react";
@@ -12,6 +14,20 @@ export const Navbar: React.FC = () => {
   
   const [searchVal, setSearchVal] = useState(searchParams.get("search") || "");
   const [profileOpen, setProfileOpen] = useState(false);
+  
+  const debouncedSearch = useSearchDebounce(searchVal, 600);
+
+  useEffect(() => {
+    // Automatically navigate on debounce
+    const currentSearch = searchParams.get("search") || "";
+    if (debouncedSearch.trim() !== currentSearch) {
+      if (debouncedSearch.trim()) {
+        navigate(`/?search=${encodeURIComponent(debouncedSearch.trim())}`);
+      } else if (debouncedSearch === "" && currentSearch !== "") {
+        navigate("/");
+      }
+    }
+  }, [debouncedSearch, navigate, searchParams]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
