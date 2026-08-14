@@ -24,4 +24,8 @@ const cartSchema = new mongoose.Schema({
     }
 });
 
+// Kalvium Concept: MongoDB Indexing
+// Indexing the user field because carts are frequently queried by userId
+cartSchema.index({ user: 1 });
+
 export default mongoose.model("Cart", cartSchema);
