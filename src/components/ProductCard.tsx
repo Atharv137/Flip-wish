@@ -24,20 +24,28 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const handleWishlistClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isWishlisted) {
-      await removeFromWishlist(wishlistItem.id);
-    } else {
-      await addToWishlist(product.id);
+    try {
+      if (isWishlisted) {
+        await removeFromWishlist(wishlistItem.id);
+      } else {
+        await addToWishlist(product.id);
+      }
+    } catch (error) {
+      console.error("Failed to update wishlist:", error);
     }
   };
 
   const handleCartClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isInCart) {
-      navigate("/cart");
-    } else {
-      await addToCart(product.id);
+    try {
+      if (isInCart) {
+        navigate("/cart");
+      } else {
+        await addToCart(product.id);
+      }
+    } catch (error) {
+      console.error("Failed to update cart:", error);
     }
   };
 
