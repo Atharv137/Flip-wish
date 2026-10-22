@@ -1,9 +1,13 @@
 [build]
-  command = "npm run build"
+  command = "npm run build:client"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"
+  # Omit public client-side Firebase web configuration variables from Netlify secret scanning.
+  # These variables are designed to be client-accessible identifiers in the browser bundle.
+  # Private server secrets (GEMINI_API_KEY, MONGO_URI, JWT_SECRET) are NOT omitted and remain protected.
+  SECRETS_SCAN_OMIT_KEYS = "VITE_FIREBASE_API_KEY,VITE_FIREBASE_APP_ID,VITE_FIREBASE_PROJECT_ID,VITE_FIREBASE_STORAGE_BUCKET,VITE_FIREBASE_MESSAGING_SENDER_ID,VITE_FIREBASE_AUTH_DOMAIN,VITE_FIREBASE_MEASUREMENT_ID,NEXT_PUBLIC_FIREBASE_API_KEY,NEXT_PUBLIC_FIREBASE_APP_ID,NEXT_PUBLIC_FIREBASE_PROJECT_ID,NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID"
 
 # SPA routing redirect for client-side React routes
 [[redirects]]
