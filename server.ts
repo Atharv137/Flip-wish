@@ -12,6 +12,7 @@ async function startServer() {
   app.use(cors({
     origin: [
       "http://localhost:3000",
+      "https://electroomart.netlify.app",
       "https://flipwish.netlify.app"
     ],
     credentials: true

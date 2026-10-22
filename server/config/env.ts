@@ -7,6 +7,6 @@ export const config = {
   mongoUri: process.env.MONGO_URI || process.env.MONGODB_URI || "",
   databaseUrl: process.env.DATABASE_URL || "",
 
-  jwtSecret: process.env.JWT_SECRET || "electromart-jwt-secret-key-2025-fallback",
+  jwtSecret: process.env.JWT_SECRET || "",
   geminiApiKey: process.env.GEMINI_API_KEY || "",
 };
