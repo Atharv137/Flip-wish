@@ -31,15 +31,15 @@
   }
 
   /* Make primary/secondary buttons chunky with bold uppercase text and small border-radius */
+  /* Make primary/secondary buttons chunky with bold uppercase text and small border-radius */
   button, 
-  a.bg-[#FB641B], 
-  a.bg-[#7C3AED], 
-  button.bg-[#FB641B], 
-  button.bg-[#7C3AED], 
+  a.btn-primary, 
+  button.btn-primary, 
+  .btn-primary,
   button.bg-emerald-600 {
     font-weight: 800 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.03em !important;
+    letter-spacing: -0.01em !important;
     border-radius: 2px !important; /* Sharp corners as in design */
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
   }

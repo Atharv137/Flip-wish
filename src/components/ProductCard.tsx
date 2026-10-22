@@ -164,7 +164,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               ? "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
               : isInCart
               ? "bg-[#FFE500] hover:bg-[#ebd200] text-[#7C3AED]"
-              : "bg-[#FB641B] hover:bg-[#e0540d] text-white"
+              : "btn-primary bg-[#FB641B] hover:bg-[#e0540d] text-white"
           }`}
         >
           <ShoppingCart className="w-3.5 h-3.5" />
