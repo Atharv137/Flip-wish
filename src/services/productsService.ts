@@ -1,35 +1,28 @@
-import {
-  collection,
-  doc,
-  getDocs,
-  getDoc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  query
-} from "firebase/firestore";
+import { ref, get, set, update, remove } from "firebase/database";
 import { db } from "../lib/firebase";
 import { Product, PaginationData, SortOption } from "../types";
 import { DEFAULT_PRODUCTS } from "../data/defaultProducts";
-import { handleFirestoreError } from "../lib/firestoreErrors";
+import { handleDatabaseError } from "../lib/firestoreErrors";
 
 let hasAttemptedSeed = false;
 
 /**
- * Seeds default products to Firestore if collection is empty
+ * Seeds default products to Realtime Database if node is empty
  */
 export async function seedProductsIfEmpty(): Promise<Product[]> {
   if (hasAttemptedSeed) return DEFAULT_PRODUCTS;
   hasAttemptedSeed = true;
 
   try {
-    const productsRef = collection(db, "products");
-    const snapshot = await getDocs(productsRef);
-    if (snapshot.empty) {
-      console.log("Seeding initial products catalog into Firestore...");
+    const productsRef = ref(db, "products");
+    const snapshot = await get(productsRef);
+    if (!snapshot.exists()) {
+      console.log("Seeding initial products catalog into Realtime Database...");
+      const initialCatalog: Record<string, Product> = {};
       for (const prod of DEFAULT_PRODUCTS) {
-        await setDoc(doc(db, "products", prod.id), prod);
+        initialCatalog[prod.id] = prod;
       }
+      await set(productsRef, initialCatalog);
     }
   } catch (err) {
     // If permission or offline, we fallback silently to local DEFAULT_PRODUCTS
@@ -53,7 +46,7 @@ export interface ProductFilterParams {
 
 /**
  * Fetches products with filtering, sorting, and pagination.
- * Retrieves from Firestore and falls back to DEFAULT_PRODUCTS on error or initial load.
+ * Retrieves from Realtime Database and falls back to DEFAULT_PRODUCTS on error or initial load.
  */
 export async function fetchProducts(
   params: ProductFilterParams = {}
@@ -74,20 +67,18 @@ export async function fetchProducts(
   let allProducts: Product[] = [];
 
   try {
-    const productsRef = collection(db, "products");
-    const snapshot = await getDocs(query(productsRef));
+    const productsRef = ref(db, "products");
+    const snapshot = await get(productsRef);
 
-    if (snapshot.empty) {
+    if (!snapshot.exists()) {
       await seedProductsIfEmpty();
       allProducts = [...DEFAULT_PRODUCTS];
     } else {
-      allProducts = snapshot.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...(docSnap.data() as Omit<Product, "id">)
-      }));
+      const data = snapshot.val();
+      allProducts = Object.values(data) as Product[];
     }
   } catch (error) {
-    handleFirestoreError(error, "list", "products");
+    handleDatabaseError(error, "list", "products");
     allProducts = [...DEFAULT_PRODUCTS];
   }
 
@@ -112,40 +103,37 @@ export async function fetchProducts(
 
   // 3. Brand Filter
   if (brand && brand.length > 0) {
-    const lowerBrands = brand.map((b) => b.toLowerCase());
+    const brandLower = brand.map((b) => b.toLowerCase());
     allProducts = allProducts.filter((p) =>
-      lowerBrands.includes(p.brand?.toLowerCase())
+      brandLower.includes(p.brand?.toLowerCase() || "")
     );
   }
 
-  // 4. Price Filter
-  if (minPrice !== undefined) {
-    allProducts = allProducts.filter((p) => p.price >= minPrice);
-  }
-  if (maxPrice !== undefined) {
-    allProducts = allProducts.filter((p) => p.price <= maxPrice);
+  // 4. Max Price
+  if (maxPrice && maxPrice < 200000) {
+    allProducts = allProducts.filter((p) => (p.price || 0) <= maxPrice);
   }
 
-  // 5. Rating Filter
-  if (rating > 0) {
-    allProducts = allProducts.filter((p) => p.rating >= rating);
+  // 5. Min Rating
+  if (rating && rating > 0) {
+    allProducts = allProducts.filter((p) => (p.rating || 0) >= rating);
   }
 
   // 6. In Stock Only
   if (inStockOnly) {
-    allProducts = allProducts.filter((p) => p.stock > 0);
+    allProducts = allProducts.filter((p) => (p.stock || 0) > 0);
   }
 
   // 7. Sorting
   switch (sortBy) {
     case "priceLowToHigh":
-      allProducts.sort((a, b) => a.price - b.price);
+      allProducts.sort((a, b) => (a.price || 0) - (b.price || 0));
       break;
     case "priceHighToLow":
-      allProducts.sort((a, b) => b.price - a.price);
+      allProducts.sort((a, b) => (b.price || 0) - (a.price || 0));
       break;
     case "highestRated":
-      allProducts.sort((a, b) => b.rating - a.rating);
+      allProducts.sort((a, b) => (b.rating || 0) - (a.rating || 0));
       break;
     case "popularity":
       allProducts.sort((a, b) => (b.reviews || 0) - (a.reviews || 0));
@@ -179,13 +167,12 @@ export async function fetchProducts(
  */
 export async function fetchProductById(id: string): Promise<Product | null> {
   try {
-    const docRef = doc(db, "products", id);
-    const snap = await getDoc(docRef);
-    if (snap.exists()) {
-      return { id: snap.id, ...(snap.data() as Omit<Product, "id">) };
+    const snapshot = await get(ref(db, `products/${id}`));
+    if (snapshot.exists()) {
+      return snapshot.val() as Product;
     }
   } catch (err) {
-    handleFirestoreError(err, "read", `products/${id}`);
+    handleDatabaseError(err, "read", `products/${id}`);
   }
 
   // Fallback to local default catalog
@@ -194,31 +181,28 @@ export async function fetchProductById(id: string): Promise<Product | null> {
 }
 
 /**
- * Admin: Create Product in Firestore
+ * Admin: Create Product in Realtime Database
  */
 export async function createProductInFirestore(productData: Omit<Product, "id">): Promise<Product> {
   const newId = "prod_" + Date.now().toString(36) + "_" + Math.random().toString(36).substring(2, 6);
   const newProduct: Product = { id: newId, ...productData };
-  const docRef = doc(db, "products", newId);
-  await setDoc(docRef, newProduct);
+  await set(ref(db, `products/${newId}`), newProduct);
   return newProduct;
 }
 
 /**
- * Admin: Update Product in Firestore
+ * Admin: Update Product in Realtime Database
  */
 export async function updateProductInFirestore(
   id: string,
   updates: Partial<Product>
 ): Promise<void> {
-  const docRef = doc(db, "products", id);
-  await updateDoc(docRef, updates);
+  await update(ref(db, `products/${id}`), updates);
 }
 
 /**
- * Admin: Delete Product in Firestore
+ * Admin: Delete Product in Realtime Database
  */
 export async function deleteProductInFirestore(id: string): Promise<void> {
-  const docRef = doc(db, "products", id);
-  await deleteDoc(docRef);
+  await remove(ref(db, `products/${id}`));
 }

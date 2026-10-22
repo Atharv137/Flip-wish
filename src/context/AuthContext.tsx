@@ -6,10 +6,10 @@ import {
   onAuthStateChanged,
   User as FirebaseUser
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { ref, get, set } from "firebase/database";
 import { auth, db } from "../lib/firebase";
 import { User } from "../types";
-import { handleFirestoreError } from "../lib/firestoreErrors";
+import { handleDatabaseError } from "../lib/firestoreErrors";
 
 interface AuthContextType {
   user: User | null;
@@ -65,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
   const [loading, setLoading] = useState(true);
 
-  // Sync Firebase Authentication state
+  // Sync Firebase Authentication state and Realtime Database user profile
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
@@ -74,8 +74,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setToken(idToken);
           localStorage.setItem("flipkart_token", idToken);
 
-          // Retrieve or sync profile from Firestore
-          const userDocRef = doc(db, "users", firebaseUser.uid);
+          // Retrieve or sync profile from Realtime Database: users/{uid}
+          const userRef = ref(db, `users/${firebaseUser.uid}`);
           let userRole: "admin" | "customer" =
             firebaseUser.email?.toLowerCase() === "hargudetejas17@gmail.com"
               ? "admin"
@@ -83,23 +83,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           let displayName = firebaseUser.displayName || "";
 
           try {
-            const snap = await getDoc(userDocRef);
+            const snap = await get(userRef);
             if (snap.exists()) {
-              const data = snap.data();
+              const data = snap.val();
               if (data.role) userRole = data.role;
               if (data.name) displayName = data.name;
             } else {
-              // Create user record if not present
-              await setDoc(userDocRef, {
+              // Create user record in Realtime Database if not present
+              const initialData = {
                 id: firebaseUser.uid,
                 name: displayName || firebaseUser.email?.split("@")[0] || "User",
                 email: firebaseUser.email || "",
                 role: userRole,
                 createdAt: new Date().toISOString()
-              });
+              };
+              await set(userRef, initialData);
             }
           } catch (docErr) {
-            handleFirestoreError(docErr, "read", `users/${firebaseUser.uid}`);
+            handleDatabaseError(docErr, "read", `users/${firebaseUser.uid}`);
           }
 
           const appUser: User = {
@@ -140,9 +141,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       let displayName = firebaseUser.displayName || "";
 
       try {
-        const snap = await getDoc(doc(db, "users", firebaseUser.uid));
+        const snap = await get(ref(db, `users/${firebaseUser.uid}`));
         if (snap.exists()) {
-          const data = snap.data();
+          const data = snap.val();
           if (data.role) userRole = data.role;
           if (data.name) displayName = data.name;
         }
@@ -196,9 +197,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
 
       try {
-        await setDoc(doc(db, "users", firebaseUser.uid), newUserDoc);
+        await set(ref(db, `users/${firebaseUser.uid}`), newUserDoc);
       } catch (docErr) {
-        handleFirestoreError(docErr, "create", `users/${firebaseUser.uid}`);
+        handleDatabaseError(docErr, "create", `users/${firebaseUser.uid}`);
       }
 
       const appUser: User = {
@@ -223,26 +224,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     try {
       await signOut(auth);
-    } catch (err) {
-      console.warn("Sign out error:", err);
+    } catch (e) {
+      console.error("Firebase Signout Error:", e);
     }
+    setUser(null);
+    setToken(null);
     localStorage.removeItem("flipkart_token");
     localStorage.removeItem("flipkart_user");
-    setToken(null);
-    setUser(null);
   };
 
-  const value = {
-    user,
-    token,
-    loading,
-    login,
-    signup,
-    logout,
-    isAuthenticated: !!user
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        loading,
+        login,
+        signup,
+        logout,
+        isAuthenticated: !!user
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {

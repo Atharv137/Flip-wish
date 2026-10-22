@@ -1,0 +1,32 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || auth.token.email === 'hargudetejas17@gmail.com')",
+        ".write": "auth != null && (auth.uid === $uid || auth.token.email === 'hargudetejas17@gmail.com')"
+      }
+    },
+    "wishlists": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || auth.token.email === 'hargudetejas17@gmail.com')",
+        ".write": "auth != null && (auth.uid === $uid || auth.token.email === 'hargudetejas17@gmail.com')"
+      }
+    },
+    "carts": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || auth.token.email === 'hargudetejas17@gmail.com')",
+        ".write": "auth != null && (auth.uid === $uid || auth.token.email === 'hargudetejas17@gmail.com')"
+      }
+    },
+    "orders": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || auth.token.email === 'hargudetejas17@gmail.com')",
+        ".write": "auth != null && (auth.uid === $uid || auth.token.email === 'hargudetejas17@gmail.com')"
+      }
+    },
+    "products": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email === 'hargudetejas17@gmail.com'"
+    }
+  }
+}

@@ -1,26 +1,28 @@
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  setDoc,
-  deleteDoc
-} from "firebase/firestore";
+import { ref, get, set, remove } from "firebase/database";
 import { db } from "../lib/firebase";
 import { WishlistItem, Product } from "../types";
-import { handleFirestoreError } from "../lib/firestoreErrors";
+import { handleDatabaseError } from "../lib/firestoreErrors";
 import { fetchProductById } from "./productsService";
 
+/**
+ * Retrieve user wishlist items from Realtime Database under wishlists/{uid}
+ */
 export async function getUserWishlist(userId: string): Promise<WishlistItem[]> {
   if (!userId) return [];
   try {
-    const q = query(collection(db, "wishlists"), where("userId", "==", userId));
-    const snapshot = await getDocs(q);
+    const userWishRef = ref(db, `wishlists/${userId}`);
+    const snapshot = await get(userWishRef);
+    if (!snapshot.exists()) return [];
+
+    const val = snapshot.val();
+    const rawItems: WishlistItem[] = Array.isArray(val)
+      ? val.filter(Boolean)
+      : Object.values(val);
+
     const items: WishlistItem[] = [];
 
-    for (const d of snapshot.docs) {
-      const data = d.data();
+    for (const data of rawItems) {
+      if (!data) continue;
       let product = data.product as Product;
       // If product object is missing or stale, fetch latest
       if (!product || !product.title) {
@@ -28,8 +30,8 @@ export async function getUserWishlist(userId: string): Promise<WishlistItem[]> {
         if (fresh) product = fresh;
       }
       items.push({
-        id: d.id,
-        userId: data.userId,
+        id: data.id || `wish_${userId.slice(0, 5)}_${data.productId}`,
+        userId: data.userId || userId,
         productId: data.productId,
         addedAt: data.addedAt || new Date().toISOString(),
         product
@@ -38,7 +40,7 @@ export async function getUserWishlist(userId: string): Promise<WishlistItem[]> {
 
     return items;
   } catch (error) {
-    handleFirestoreError(error, "list", `wishlists?userId=${userId}`);
+    handleDatabaseError(error, "list", `wishlists/${userId}`);
     // Check localStorage fallback for offline resilience
     const local = localStorage.getItem(`electromart_wishlist_${userId}`);
     if (local) {
@@ -52,6 +54,9 @@ export async function getUserWishlist(userId: string): Promise<WishlistItem[]> {
   }
 }
 
+/**
+ * Add product to user wishlist in Realtime Database under wishlists/{uid}/{productId}
+ */
 export async function addToUserWishlist(
   userId: string,
   product: Product
@@ -66,10 +71,10 @@ export async function addToUserWishlist(
   };
 
   try {
-    const docRef = doc(db, "wishlists", wishId);
-    await setDoc(docRef, item);
+    const itemRef = ref(db, `wishlists/${userId}/${product.id}`);
+    await set(itemRef, item);
   } catch (error) {
-    handleFirestoreError(error, "create", `wishlists/${wishId}`);
+    handleDatabaseError(error, "create", `wishlists/${userId}/${product.id}`);
   }
 
   // Update local cache
@@ -81,22 +86,28 @@ export async function addToUserWishlist(
   return item;
 }
 
+/**
+ * Remove product from user wishlist in Realtime Database
+ */
 export async function removeFromUserWishlist(
   wishlistOrProductId: string,
   userId: string
 ): Promise<void> {
   try {
-    // If it's a direct wishlist ID
-    const directDocRef = doc(db, "wishlists", wishlistOrProductId);
-    await deleteDoc(directDocRef);
-  } catch (e) {
-    // Might be product ID, try compound ID or query
-    try {
-      const compoundId = "wish_" + userId.slice(0, 5) + "_" + wishlistOrProductId;
-      await deleteDoc(doc(db, "wishlists", compoundId));
-    } catch (err) {
-      handleFirestoreError(err, "delete", `wishlists/${wishlistOrProductId}`);
+    // If it's a compound wishlist ID "wish_xyz_prod1", extract product id
+    const prodId = wishlistOrProductId.startsWith("wish_")
+      ? wishlistOrProductId.split("_").slice(2).join("_")
+      : wishlistOrProductId;
+
+    // Delete directly from wishlists/{userId}/{prodId}
+    await remove(ref(db, `wishlists/${userId}/${prodId}`));
+
+    // Also attempt cleanup if stored by direct ID
+    if (prodId !== wishlistOrProductId) {
+      await remove(ref(db, `wishlists/${userId}/${wishlistOrProductId}`));
     }
+  } catch (err) {
+    handleDatabaseError(err, "delete", `wishlists/${userId}/${wishlistOrProductId}`);
   }
 
   // Update local cache
@@ -114,6 +125,9 @@ export async function removeFromUserWishlist(
   }
 }
 
+/**
+ * Live stock check for wishlisted products
+ */
 export async function checkWishlistStockLive(
   productIds: string[]
 ): Promise<Record<string, { stock: number; price: number; originalPrice: number }>> {

@@ -1,35 +1,36 @@
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  setDoc,
-  updateDoc,
-  deleteDoc
-} from "firebase/firestore";
+import { ref, get, set, update, remove } from "firebase/database";
 import { db } from "../lib/firebase";
 import { CartItem, Product } from "../types";
-import { handleFirestoreError } from "../lib/firestoreErrors";
+import { handleDatabaseError } from "../lib/firestoreErrors";
 import { fetchProductById } from "./productsService";
 
+/**
+ * Retrieve user cart items from Realtime Database under carts/{uid}
+ */
 export async function getUserCart(userId: string): Promise<CartItem[]> {
   if (!userId) return [];
   try {
-    const q = query(collection(db, "cart_items"), where("userId", "==", userId));
-    const snapshot = await getDocs(q);
+    const userCartRef = ref(db, `carts/${userId}`);
+    const snapshot = await get(userCartRef);
+    if (!snapshot.exists()) return [];
+
+    const val = snapshot.val();
+    const rawItems: CartItem[] = Array.isArray(val)
+      ? val.filter(Boolean)
+      : Object.values(val);
+
     const items: CartItem[] = [];
 
-    for (const d of snapshot.docs) {
-      const data = d.data();
+    for (const data of rawItems) {
+      if (!data) continue;
       let product = data.product as Product;
       if (!product || !product.title) {
         const fresh = await fetchProductById(data.productId);
         if (fresh) product = fresh;
       }
       items.push({
-        id: d.id,
-        userId: data.userId,
+        id: data.id || `cart_${userId.slice(0, 5)}_${data.productId}`,
+        userId: data.userId || userId,
         productId: data.productId,
         quantity: data.quantity || 1,
         product
@@ -38,7 +39,7 @@ export async function getUserCart(userId: string): Promise<CartItem[]> {
 
     return items;
   } catch (error) {
-    handleFirestoreError(error, "list", `cart_items?userId=${userId}`);
+    handleDatabaseError(error, "list", `carts/${userId}`);
     const local = localStorage.getItem(`electromart_cart_${userId}`);
     if (local) {
       try {
@@ -51,47 +52,49 @@ export async function getUserCart(userId: string): Promise<CartItem[]> {
   }
 }
 
+/**
+ * Add or update item in user cart under carts/{uid}/{productId}
+ */
 export async function addToUserCart(
   userId: string,
   product: Product,
   quantity = 1
 ): Promise<CartItem> {
   const cartItemId = "cart_" + userId.slice(0, 5) + "_" + product.id;
+  const item: CartItem = {
+    id: cartItemId,
+    userId,
+    productId: product.id,
+    quantity,
+    product
+  };
 
   try {
-    const docRef = doc(db, "cart_items", cartItemId);
-    const item: CartItem = {
-      id: cartItemId,
-      userId,
-      productId: product.id,
-      quantity,
-      product
-    };
-    await setDoc(docRef, item);
+    const itemRef = ref(db, `carts/${userId}/${product.id}`);
+    await set(itemRef, item);
     return item;
   } catch (error) {
-    handleFirestoreError(error, "create", `cart_items/${cartItemId}`);
-    const item: CartItem = {
-      id: cartItemId,
-      userId,
-      productId: product.id,
-      quantity,
-      product
-    };
+    handleDatabaseError(error, "create", `carts/${userId}/${product.id}`);
     return item;
   }
 }
 
+/**
+ * Update quantity of item in user cart
+ */
 export async function updateUserCartItemQuantity(
   cartItemId: string,
   newQty: number,
   userId: string
 ): Promise<void> {
+  const prodId = cartItemId.startsWith("cart_")
+    ? cartItemId.split("_").slice(2).join("_")
+    : cartItemId;
+
   try {
-    const docRef = doc(db, "cart_items", cartItemId);
-    await updateDoc(docRef, { quantity: newQty });
+    await update(ref(db, `carts/${userId}/${prodId}`), { quantity: newQty });
   } catch (error) {
-    handleFirestoreError(error, "update", `cart_items/${cartItemId}`);
+    handleDatabaseError(error, "update", `carts/${userId}/${prodId}`);
   }
 
   // Update local cache
@@ -100,7 +103,9 @@ export async function updateUserCartItemQuantity(
     try {
       const list: CartItem[] = JSON.parse(local);
       const updated = list.map((item) =>
-        item.id === cartItemId ? { ...item, quantity: newQty } : item
+        item.id === cartItemId || item.productId === prodId
+          ? { ...item, quantity: newQty }
+          : item
       );
       localStorage.setItem(`electromart_cart_${userId}`, JSON.stringify(updated));
     } catch (e) {
@@ -109,15 +114,24 @@ export async function updateUserCartItemQuantity(
   }
 }
 
+/**
+ * Remove item from user cart
+ */
 export async function removeFromUserCart(
   cartItemId: string,
   userId: string
 ): Promise<void> {
+  const prodId = cartItemId.startsWith("cart_")
+    ? cartItemId.split("_").slice(2).join("_")
+    : cartItemId;
+
   try {
-    const docRef = doc(db, "cart_items", cartItemId);
-    await deleteDoc(docRef);
+    await remove(ref(db, `carts/${userId}/${prodId}`));
+    if (prodId !== cartItemId) {
+      await remove(ref(db, `carts/${userId}/${cartItemId}`));
+    }
   } catch (error) {
-    handleFirestoreError(error, "delete", `cart_items/${cartItemId}`);
+    handleDatabaseError(error, "delete", `carts/${userId}/${prodId}`);
   }
 
   // Update local cache
@@ -125,7 +139,9 @@ export async function removeFromUserCart(
   if (local) {
     try {
       const list: CartItem[] = JSON.parse(local);
-      const updated = list.filter((item) => item.id !== cartItemId);
+      const updated = list.filter(
+        (item) => item.id !== cartItemId && item.productId !== prodId
+      );
       localStorage.setItem(`electromart_cart_${userId}`, JSON.stringify(updated));
     } catch (e) {
       // ignore
@@ -142,12 +158,16 @@ export interface ShippingAddress {
   state: string;
 }
 
+/**
+ * Place customer order and clean up cart under carts/{uid}
+ */
 export async function checkoutUserCart(
   userId: string,
   cartItems: CartItem[],
   shippingAddress?: ShippingAddress
 ): Promise<{ orderId: string }> {
-  const orderId = "order_" + Date.now().toString(36) + "_" + Math.random().toString(36).substring(2, 6);
+  const orderId =
+    "order_" + Date.now().toString(36) + "_" + Math.random().toString(36).substring(2, 6);
   const totalAmount = cartItems.reduce(
     (sum, item) => sum + (item.product?.price || 0) * (item.quantity || 1),
     0
@@ -170,22 +190,16 @@ export async function checkoutUserCart(
   };
 
   try {
-    const orderDocRef = doc(db, "orders", orderId);
-    await setDoc(orderDocRef, orderData);
+    // Store order under orders/{uid}/{orderId}
+    await set(ref(db, `orders/${userId}/${orderId}`), orderData);
 
-    // Clean up cart items from Firestore
-    for (const item of cartItems) {
-      try {
-        await deleteDoc(doc(db, "cart_items", item.id));
-      } catch (e) {
-        // Continue cleaning remaining
-      }
-    }
+    // Clean up cart items from Realtime Database
+    await remove(ref(db, `carts/${userId}`));
   } catch (error) {
-    handleFirestoreError(error, "create", `orders/${orderId}`);
+    handleDatabaseError(error, "create", `orders/${userId}/${orderId}`);
   }
 
-  // Clear local cart
+  // Clear local cart cache
   localStorage.removeItem(`electromart_cart_${userId}`);
 
   return { orderId };
