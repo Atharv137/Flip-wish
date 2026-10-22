@@ -40,7 +40,7 @@ export default function App() {
     <AuthProvider>
       <CartWishlistProvider>
         <Router>
-          <div className="min-h-screen flex flex-col bg-[#F1F3F6] font-sans selection:bg-[#FFE500] selection:text-[#2874F0]">
+          <div className="min-h-screen flex flex-col bg-[#F1F3F6] font-sans selection:bg-[#FFE500] selection:text-[#7C3AED]">
             
             {/* 1. Global Navigation Bar */}
             <Navbar />

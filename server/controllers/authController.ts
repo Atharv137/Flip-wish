@@ -55,7 +55,8 @@ export async function signup(req: Request, res: Response): Promise<any> {
       user: {
         id: newUser.id,
         name: newUser.name,
-        email: newUser.email
+        email: newUser.email,
+        role: newUser.role
       }
     });
   } catch (error: any) {
@@ -96,6 +97,7 @@ export async function login(req: Request, res: Response): Promise<any> {
     }
 
     const token = generateToken(user.id);
+    const role = user.email.toLowerCase() === "hargudetejas17@gmail.com" ? "admin" : (user.role || "customer");
 
     return res.status(200).json({
       message: "Login successful",
@@ -103,7 +105,8 @@ export async function login(req: Request, res: Response): Promise<any> {
       user: {
         id: user.id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        role
       }
     });
   } catch (error: any) {

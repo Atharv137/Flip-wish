@@ -40,7 +40,7 @@ export const Signup: React.FC = () => {
     setLoading(false);
 
     if (result.success) {
-      addToast("Signup Successful! Welcome to FlipWish.", "success");
+      addToast("Signup Successful! Welcome to Electromart.", "success");
       navigate("/");
     } else {
       addToast(result.error || "Registration failed", "error");
@@ -57,7 +57,7 @@ export const Signup: React.FC = () => {
       >
         
         {/* Banner Section */}
-        <div className="bg-[#2874F0] text-white p-8 md:w-2/5 flex flex-col justify-between">
+        <div className="bg-[#7C3AED] text-white p-8 md:w-2/5 flex flex-col justify-between">
           <div>
             <h2 className="text-2xl font-bold italic">Register</h2>
             <p className="text-xs text-slate-100 font-light mt-3 leading-relaxed">
@@ -67,7 +67,7 @@ export const Signup: React.FC = () => {
           <div className="hidden md:flex items-center gap-1.5 opacity-90 mt-10">
             <ShoppingBag className="w-6 h-6 text-[#FFE500]" />
             <span className="font-extrabold text-sm italic">
-              Flip<span className="text-[#FFE500]">Wish</span>
+              Electro<span className="text-[#FFE500]">mart</span>
             </span>
           </div>
         </div>
@@ -88,7 +88,7 @@ export const Signup: React.FC = () => {
                   placeholder="Enter full name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:ring-1 focus:ring-[#2874F0] focus:border-[#2874F0]"
+                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:ring-1 focus:ring-[#7C3AED] focus:border-[#7C3AED]"
                   required
                 />
               </div>
@@ -106,7 +106,7 @@ export const Signup: React.FC = () => {
                   placeholder="Enter email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:ring-1 focus:ring-[#2874F0] focus:border-[#2874F0]"
+                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:ring-1 focus:ring-[#7C3AED] focus:border-[#7C3AED]"
                   required
                 />
               </div>
@@ -124,7 +124,7 @@ export const Signup: React.FC = () => {
                   placeholder="At least 6 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-9 pr-10 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:ring-1 focus:ring-[#2874F0] focus:border-[#2874F0]"
+                  className="w-full pl-9 pr-10 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:ring-1 focus:ring-[#7C3AED] focus:border-[#7C3AED]"
                   required
                 />
                 <button
@@ -149,7 +149,7 @@ export const Signup: React.FC = () => {
                   placeholder="Re-enter password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:ring-1 focus:ring-[#2874F0] focus:border-[#2874F0]"
+                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:ring-1 focus:ring-[#7C3AED] focus:border-[#7C3AED]"
                   required
                 />
               </div>
@@ -170,7 +170,7 @@ export const Signup: React.FC = () => {
           <div className="mt-6 text-center border-t border-slate-100 pt-5">
             <p className="text-slate-500 text-xs">
               Already have an account?{" "}
-              <Link to="/login" className="text-[#2874F0] font-bold hover:underline">
+              <Link to="/login" className="text-[#7C3AED] font-bold hover:underline">
                 Sign In
               </Link>
             </p>

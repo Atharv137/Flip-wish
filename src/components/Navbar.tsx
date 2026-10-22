@@ -43,19 +43,21 @@ export const Navbar: React.FC = () => {
     navigate("/");
   };
 
+  const isAdmin = Boolean(user && (user.email?.toLowerCase() === "hargudetejas17@gmail.com" || user.role === "admin"));
+
   return (
-    <nav className="sticky top-0 z-40 bg-[#2874F0] text-white shadow-md">
+    <nav className="sticky top-0 z-40 bg-[#7C3AED] text-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           
           {/* Logo */}
           <div onClick={handleLogoClick} className="flex items-center gap-2 cursor-pointer shrink-0">
-            <div className="bg-[#FFE500] text-[#2874F0] p-1.5 rounded-lg font-bold flex items-center justify-center">
+            <div className="bg-[#FFE500] text-[#7C3AED] p-1.5 rounded-lg font-bold flex items-center justify-center">
               <ShoppingBag className="w-5 h-5" />
             </div>
             <div className="flex flex-col leading-none">
               <span className="font-extrabold text-xl tracking-tight italic">
-                Flip<span className="text-[#FFE500]">Wish</span>
+                Electro<span className="text-[#FFE500]">mart</span>
               </span>
               <span className="text-[10px] text-slate-100 font-medium italic flex items-center gap-0.5 mt-0.5">
                 Explore <span className="text-[#FFE500] font-bold">Plus ◆</span>
@@ -74,7 +76,7 @@ export const Navbar: React.FC = () => {
             />
             <button
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#2874F0] cursor-pointer"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#7C3AED] cursor-pointer"
             >
               <Search className="w-5 h-5" />
             </button>
@@ -91,7 +93,7 @@ export const Navbar: React.FC = () => {
               <Heart className="w-5 h-5" />
               <span className="text-sm font-semibold hidden md:inline">Wishlist</span>
               {wishlist.length > 0 && (
-                <span className="absolute -top-1 -right-2.5 bg-[#FB641B] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#2874F0] animate-pulse">
+                <span className="absolute -top-1 -right-2.5 bg-[#FB641B] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#7C3AED] animate-pulse">
                   {wishlist.length}
                 </span>
               )}
@@ -105,7 +107,7 @@ export const Navbar: React.FC = () => {
               <ShoppingCart className="w-5 h-5" />
               <span className="text-sm font-semibold hidden md:inline">Cart</span>
               {cart.length > 0 && (
-                <span className="absolute -top-1 -right-2.5 bg-[#FB641B] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#2874F0]">
+                <span className="absolute -top-1 -right-2.5 bg-[#FB641B] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#7C3AED]">
                   {cart.reduce((sum, item) => sum + item.quantity, 0)}
                 </span>
               )}
@@ -116,7 +118,7 @@ export const Navbar: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="bg-white text-[#2874F0] hover:bg-slate-5 px-4 py-1.5 rounded font-bold text-sm flex items-center gap-1.5 shadow-sm transition-all focus:outline-none cursor-pointer"
+                  className="bg-white text-[#7C3AED] hover:bg-slate-5 px-4 py-1.5 rounded font-bold text-sm flex items-center gap-1.5 shadow-sm transition-all focus:outline-none cursor-pointer"
                 >
                   <User className="w-4 h-4" />
                   <span className="max-w-[80px] truncate">{user?.name}</span>
@@ -127,20 +129,33 @@ export const Navbar: React.FC = () => {
                     {/* Overlay to close menu */}
                     <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)}></div>
                     
-                    <div className="absolute right-0 mt-2 w-48 bg-white text-slate-800 rounded-lg shadow-xl py-1 border border-slate-100 z-50 overflow-hidden">
-                      <div className="px-4 py-2 border-b border-slate-100 bg-slate-50">
-                        <p className="text-xs text-slate-400">Signed in as</p>
-                        <p className="text-sm font-semibold text-slate-700 truncate">{user?.email}</p>
+                    <div className="absolute right-0 mt-2 w-52 bg-white text-slate-800 rounded-lg shadow-xl py-1 border border-slate-100 z-50 overflow-hidden">
+                      <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <p className="text-[11px] text-slate-400">Signed in as</p>
+                          {isAdmin ? (
+                            <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.2 rounded uppercase tracking-wider">
+                              Admin
+                            </span>
+                          ) : (
+                            <span className="bg-slate-200 text-slate-600 text-[10px] font-medium px-1.5 py-0.2 rounded uppercase tracking-wider">
+                              Shopper
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs font-semibold text-slate-700 truncate">{user?.email}</p>
                       </div>
 
-                      <Link
-                        to="/admin"
-                        onClick={() => setProfileOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-slate-50 text-slate-700 hover:text-[#2874F0] transition-colors"
-                      >
-                        <LayoutDashboard className="w-4 h-4 text-slate-400" />
-                        Admin Dashboard
-                      </Link>
+                      {isAdmin && (
+                        <Link
+                          to="/admin"
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-slate-50 text-slate-700 hover:text-[#7C3AED] transition-colors"
+                        >
+                          <LayoutDashboard className="w-4 h-4 text-slate-400" />
+                          Admin Dashboard
+                        </Link>
+                      )}
 
                       <button
                         onClick={() => {
@@ -159,7 +174,7 @@ export const Navbar: React.FC = () => {
             ) : (
               <Link
                 to="/login"
-                className="bg-white text-[#2874F0] hover:bg-slate-5 px-6 py-1.5 rounded font-extrabold text-sm shadow-sm transition-all text-center block"
+                className="bg-white text-[#7C3AED] hover:bg-slate-5 px-6 py-1.5 rounded font-extrabold text-sm shadow-sm transition-all text-center block"
               >
                 Login
               </Link>
@@ -170,7 +185,7 @@ export const Navbar: React.FC = () => {
       </div>
       
       {/* Mobile Search Bar Row */}
-      <div className="sm:hidden px-4 pb-3 pt-1 border-t border-[#1b62db]">
+      <div className="sm:hidden px-4 pb-3 pt-1 border-t border-[#6D28D9]">
         <form onSubmit={handleSearchSubmit} className="relative">
           <input
             type="text"

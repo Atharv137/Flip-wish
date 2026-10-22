@@ -33,9 +33,9 @@
   /* Make primary/secondary buttons chunky with bold uppercase text and small border-radius */
   button, 
   a.bg-[#FB641B], 
-  a.bg-[#2874F0], 
+  a.bg-[#7C3AED], 
   button.bg-[#FB641B], 
-  button.bg-[#2874F0], 
+  button.bg-[#7C3AED], 
   button.bg-emerald-600 {
     font-weight: 800 !important;
     text-transform: uppercase !important;
@@ -63,9 +63,9 @@
   }
   
   input:focus, select:focus, textarea:focus {
-    border-color: #2874F0 !important;
+    border-color: #7C3AED !important;
     outline: none !important;
-    box-shadow: 0 0 0 2px rgba(40, 116, 240, 0.15) !important;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15) !important;
   }
 }
 
@@ -77,8 +77,8 @@
 
 /* Specific product cards should pop with heavy borders on hover */
 .group:hover {
-  border-color: #2874F0 !important;
-  box-shadow: 0 8px 0px 0px rgba(40, 116, 240, 0.08), 0 10px 20px rgba(0, 0, 0, 0.04) !important;
+  border-color: #7C3AED !important;
+  box-shadow: 0 8px 0px 0px rgba(124, 58, 237, 0.08), 0 10px 20px rgba(0, 0, 0, 0.04) !important;
 }
 
 /* Highlight filters and active chips */

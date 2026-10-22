@@ -48,7 +48,7 @@ const HERO_BANNERS = [
     title: "Flagship Smartphone Carnival",
     subtitle: "Incredible discounts on iPhone 16 Pro, Galaxy S25 & more!",
     tag: "Super Saving Days",
-    accent: "bg-[#2874F0]",
+    accent: "bg-[#7C3AED]",
     image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80",
     discountText: "Up to 15% Off"
   },
@@ -202,7 +202,7 @@ export const Home: React.FC = () => {
                 onClick={() => handleCategoryPillClick(cat)}
                 className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-all duration-200 shrink-0 border ${
                   active
-                    ? "bg-[#2874F0] text-white border-[#2874F0] shadow-sm"
+                    ? "bg-[#7C3AED] text-white border-[#7C3AED] shadow-sm"
                     : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
                 }`}
               >
@@ -286,7 +286,7 @@ export const Home: React.FC = () => {
               <span className="font-bold text-slate-800 text-sm">Filters</span>
               <button
                 onClick={resetAllFilters}
-                className="text-xs font-semibold text-[#2874F0] hover:text-[#fb641b] transition-colors cursor-pointer"
+                className="text-xs font-semibold text-[#7C3AED] hover:text-[#fb641b] transition-colors cursor-pointer"
               >
                 CLEAR ALL
               </button>
@@ -306,11 +306,11 @@ export const Home: React.FC = () => {
                     setPage(1);
                     setMaxPrice(Number(e.target.value));
                   }}
-                  className="w-full accent-[#2874F0]"
+                  className="w-full accent-[#7C3AED]"
                 />
                 <div className="flex justify-between text-xs text-slate-500 font-medium">
                   <span>Min: ₹5,000</span>
-                  <span className="text-[#2874F0] font-bold">Max: ₹{maxPrice.toLocaleString()}</span>
+                  <span className="text-[#7C3AED] font-bold">Max: ₹{maxPrice.toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -325,7 +325,7 @@ export const Home: React.FC = () => {
                       type="checkbox"
                       checked={selectedBrands.includes(brand)}
                       onChange={() => handleBrandCheckbox(brand)}
-                      className="rounded border-slate-300 text-[#2874F0] focus:ring-[#2874F0] w-4 h-4 accent-[#2874F0]"
+                      className="rounded border-slate-300 text-[#7C3AED] focus:ring-[#7C3AED] w-4 h-4 accent-[#7C3AED]"
                     />
                     <span className="font-medium">{brand}</span>
                   </label>
@@ -347,7 +347,7 @@ export const Home: React.FC = () => {
                         setPage(1);
                         setMinRating(r);
                       }}
-                      className="w-4 h-4 accent-[#2874F0]"
+                      className="w-4 h-4 accent-[#7C3AED]"
                     />
                     <span className="font-medium">{r}★ & above</span>
                   </label>
@@ -361,7 +361,7 @@ export const Home: React.FC = () => {
                       setPage(1);
                       setMinRating(0);
                     }}
-                    className="w-4 h-4 accent-[#2874F0]"
+                    className="w-4 h-4 accent-[#7C3AED]"
                   />
                   <span className="font-medium">All Ratings</span>
                 </label>
@@ -379,7 +379,7 @@ export const Home: React.FC = () => {
                     setPage(1);
                     setInStockOnly(e.target.checked);
                   }}
-                  className="rounded border-slate-300 text-[#2874F0] w-4 h-4 accent-[#2874F0]"
+                  className="rounded border-slate-300 text-[#7C3AED] w-4 h-4 accent-[#7C3AED]"
                 />
                 <span className="font-medium">In Stock Only</span>
               </label>
@@ -425,7 +425,7 @@ export const Home: React.FC = () => {
                       setPage(1);
                       setSortBy(e.target.value as SortOption);
                     }}
-                    className="bg-slate-50 border border-slate-200 text-slate-700 font-semibold px-2.5 py-1.5 rounded focus:outline-none focus:ring-1 focus:ring-[#2874F0] cursor-pointer"
+                    className="bg-slate-50 border border-slate-200 text-slate-700 font-semibold px-2.5 py-1.5 rounded focus:outline-none focus:ring-1 focus:ring-[#7C3AED] cursor-pointer"
                   >
                     <option value="newest">Newest</option>
                     <option value="popularity">Popularity</option>
@@ -498,7 +498,7 @@ export const Home: React.FC = () => {
                 </p>
                 <button
                   onClick={resetAllFilters}
-                  className="bg-[#2874F0] hover:bg-[#1b62db] text-white text-xs font-bold px-6 py-2 rounded shadow cursor-pointer transition-colors"
+                  className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold px-6 py-2 rounded shadow cursor-pointer transition-colors"
                 >
                   RESET FILTERS
                 </button>
@@ -537,7 +537,7 @@ export const Home: React.FC = () => {
                           onClick={() => handlePageChange(pageNum)}
                           className={`w-8 h-8 rounded border text-xs font-bold transition-all cursor-pointer ${
                             active
-                              ? "bg-[#2874F0] text-white border-[#2874F0]"
+                              ? "bg-[#7C3AED] text-white border-[#7C3AED]"
                               : "bg-white hover:bg-slate-50 text-slate-700 border-slate-200"
                           }`}
                         >
@@ -608,11 +608,11 @@ export const Home: React.FC = () => {
                     step="5000"
                     value={maxPrice}
                     onChange={(e) => setMaxPrice(Number(e.target.value))}
-                    className="w-full accent-[#2874F0]"
+                    className="w-full accent-[#7C3AED]"
                   />
                   <div className="flex justify-between text-[11px] text-slate-500 font-semibold mt-1">
                     <span>Min: ₹5,000</span>
-                    <span className="text-[#2874F0]">Max: ₹{maxPrice.toLocaleString()}</span>
+                    <span className="text-[#7C3AED]">Max: ₹{maxPrice.toLocaleString()}</span>
                   </div>
                 </div>
 
@@ -626,7 +626,7 @@ export const Home: React.FC = () => {
                           type="checkbox"
                           checked={selectedBrands.includes(brand)}
                           onChange={() => handleBrandCheckbox(brand)}
-                          className="rounded border-slate-300 text-[#2874F0] accent-[#2874F0]"
+                          className="rounded border-slate-300 text-[#7C3AED] accent-[#7C3AED]"
                         />
                         <span>{brand}</span>
                       </label>
@@ -645,7 +645,7 @@ export const Home: React.FC = () => {
                           name="mobileRating"
                           checked={minRating === r}
                           onChange={() => setMinRating(r)}
-                          className="accent-[#2874F0]"
+                          className="accent-[#7C3AED]"
                         />
                         <span>{r}★ & above</span>
                       </label>
@@ -656,7 +656,7 @@ export const Home: React.FC = () => {
                         name="mobileRating"
                         checked={minRating === 0}
                         onChange={() => setMinRating(0)}
-                        className="accent-[#2874F0]"
+                        className="accent-[#7C3AED]"
                       />
                       <span>All Ratings</span>
                     </label>
@@ -671,7 +671,7 @@ export const Home: React.FC = () => {
                       type="checkbox"
                       checked={inStockOnly}
                       onChange={(e) => setInStockOnly(e.target.checked)}
-                      className="rounded border-slate-300 text-[#2874F0] accent-[#2874F0]"
+                      className="rounded border-slate-300 text-[#7C3AED] accent-[#7C3AED]"
                     />
                     <span>In Stock Only</span>
                   </label>
@@ -691,7 +691,7 @@ export const Home: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setMobileFilterOpen(false)}
-                  className="flex-1 py-2 rounded bg-[#2874F0] text-white font-bold text-xs shadow-sm"
+                  className="flex-1 py-2 rounded bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-xs shadow-sm"
                 >
                   APPLY
                 </button>

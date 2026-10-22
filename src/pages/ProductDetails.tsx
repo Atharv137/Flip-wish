@@ -193,7 +193,7 @@ export const ProductDetails: React.FC = () => {
     <div className="bg-[#F1F3F6] min-h-screen pb-12">
       {/* Back to Products */}
       <div className="max-w-7xl mx-auto px-4 lg:px-8 py-4">
-        <Link to="/" className="inline-flex items-center gap-1.5 text-[#2874F0] hover:text-[#fb641b] text-xs font-bold transition-colors">
+        <Link to="/" className="inline-flex items-center gap-1.5 text-[#7C3AED] hover:text-[#fb641b] text-xs font-bold transition-colors">
           <ArrowLeft className="w-4 h-4" />
           BACK TO ALL PRODUCTS
         </Link>
@@ -211,7 +211,7 @@ export const ProductDetails: React.FC = () => {
                   key={idx}
                   onClick={() => setActiveImageIdx(idx)}
                   className={`border-2 rounded p-1 aspect-square w-16 bg-white overflow-hidden shrink-0 cursor-pointer transition-all ${
-                    activeImageIdx === idx ? "border-[#2874F0]" : "border-slate-100 hover:border-slate-300"
+                    activeImageIdx === idx ? "border-[#7C3AED]" : "border-slate-100 hover:border-slate-300"
                   }`}
                 >
                   <img src={product.image} alt="thumb" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
@@ -313,7 +313,7 @@ export const ProductDetails: React.FC = () => {
             {/* Delivery banner */}
             <div className="bg-slate-50/50 border border-slate-100 rounded-lg p-4 grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="flex items-center gap-3">
-                <Truck className="w-5 h-5 text-[#2874F0]" />
+                <Truck className="w-5 h-5 text-[#7C3AED]" />
                 <div>
                   <p className="text-slate-700 font-bold text-xs">Free Lightning Delivery</p>
                   <p className="text-[#878787] text-[10px]">Guaranteed arrival by {product.deliveryDate}</p>
@@ -352,7 +352,7 @@ export const ProductDetails: React.FC = () => {
                   isOutOfStock
                     ? "bg-slate-100 text-slate-400 border border-slate-100 cursor-not-allowed shadow-none"
                     : isInCart
-                    ? "bg-[#FFE500] hover:bg-[#ebd200] text-[#2874F0]"
+                    ? "bg-[#FFE500] hover:bg-[#ebd200] text-[#7C3AED]"
                     : "bg-[#FB641B] hover:bg-[#e0540d] text-white"
                 }`}
               >

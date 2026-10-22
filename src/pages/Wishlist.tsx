@@ -18,7 +18,7 @@ export const Wishlist: React.FC = () => {
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 flex flex-col items-center justify-center min-h-[300px]">
-        <Loader2 className="w-8 h-8 text-[#2874F0] animate-spin" />
+        <Loader2 className="w-8 h-8 text-[#7C3AED] animate-spin" />
         <span className="text-xs text-slate-500 font-medium mt-3">Loading your wishlist...</span>
       </div>
     );
@@ -65,7 +65,7 @@ export const Wishlist: React.FC = () => {
                 </p>
                 <Link
                   to="/"
-                  className="bg-[#2874F0] hover:bg-[#1b62db] text-white text-xs font-bold px-8 py-2.5 rounded shadow cursor-pointer transition-colors"
+                  className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold px-8 py-2.5 rounded shadow cursor-pointer transition-colors"
                 >
                   START SHOPPING
                 </Link>

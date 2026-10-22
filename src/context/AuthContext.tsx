@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User } from "../types";
-import { API_URL } from "../config";
 
 interface AuthContextType {
   user: User | null;
@@ -27,7 +26,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (storedToken && storedUser) {
       try {
         setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+        const parsed = JSON.parse(storedUser);
+        if (parsed.email?.toLowerCase() === "hargudetejas17@gmail.com") {
+          parsed.role = "admin";
+        } else {
+          parsed.role = "customer";
+        }
+        setUser(parsed);
       } catch (err) {
         console.error("Error restoring session:", err);
         localStorage.removeItem("flipkart_token");
@@ -39,13 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch("/api/signup", { // Try signup first or directly login? No, call login!
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-      });
-      // Wait, let's make sure it calls login!
-      const res = await fetch(`${API_URL}/api/login`, {
+      const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -54,6 +53,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await res.json();
       if (!res.ok) {
         return { success: false, error: data.error || "Login failed" };
+      }
+
+      // Ensure role is correctly synced
+      if (data.user.email?.toLowerCase() === "hargudetejas17@gmail.com") {
+        data.user.role = "admin";
+      } else {
+        data.user.role = "customer";
       }
 
       localStorage.setItem("flipkart_token", data.token);
@@ -69,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signup = async (name: string, email: string, password: string, confirmPassword: string) => {
     try {
-      const res = await fetch(`${API_URL}/api/signup`, {
+      const res = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password, confirmPassword })
@@ -78,6 +84,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await res.json();
       if (!res.ok) {
         return { success: false, error: data.error || "Signup failed" };
+      }
+
+      if (data.user.email?.toLowerCase() === "hargudetejas17@gmail.com") {
+        data.user.role = "admin";
+      } else {
+        data.user.role = "customer";
       }
 
       localStorage.setItem("flipkart_token", data.token);

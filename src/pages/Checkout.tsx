@@ -102,7 +102,7 @@ export const Checkout: React.FC = () => {
           <div className="flex gap-4 w-full">
             <Link
               to="/"
-              className="flex-1 bg-[#2874F0] hover:bg-[#1b62db] text-white font-bold py-2.5 rounded text-xs shadow-sm transition-colors block text-center"
+              className="flex-1 bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold py-2.5 rounded text-xs shadow-sm transition-colors block text-center"
             >
               CONTINUE SHOPPING
             </Link>
@@ -117,7 +117,7 @@ export const Checkout: React.FC = () => {
       <div className="bg-[#F1F3F6] min-h-screen py-12 text-center">
         <h3 className="text-slate-800 font-bold text-sm mb-2">No active items found</h3>
         <p className="text-[#878787] text-xs mb-4">Please add items to your cart before checking out.</p>
-        <Link to="/" className="bg-[#2874F0] text-white text-xs font-bold px-4 py-2 rounded">Go to Home</Link>
+        <Link to="/" className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold px-4 py-2 rounded">Go to Home</Link>
       </div>
     );
   }
@@ -127,7 +127,7 @@ export const Checkout: React.FC = () => {
       <div className="max-w-5xl mx-auto px-4 py-6">
         
         {/* Back Link */}
-        <Link to="/cart" className="inline-flex items-center gap-1.5 text-[#2874F0] hover:text-[#fb641b] text-xs font-bold transition-colors mb-4">
+        <Link to="/cart" className="inline-flex items-center gap-1.5 text-[#7C3AED] hover:text-[#fb641b] text-xs font-bold transition-colors mb-4">
           <ArrowLeft className="w-4 h-4" />
           RETURN TO SHOPPING CART
         </Link>
@@ -140,7 +140,7 @@ export const Checkout: React.FC = () => {
             {/* Delivery address card */}
             <div className="bg-white rounded-lg shadow-sm border border-slate-100 p-5">
               <h2 className="text-slate-800 font-extrabold text-sm mb-4 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-[#2874F0]" />
+                <MapPin className="w-5 h-5 text-[#7C3AED]" />
                 1. Delivery Address details
               </h2>
 
@@ -158,7 +158,7 @@ export const Checkout: React.FC = () => {
                       placeholder="Receiver Name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-xs focus:outline-none focus:ring-1 focus:ring-[#2874F0]"
+                      className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-xs focus:outline-none focus:ring-1 focus:ring-[#7C3AED]"
                       required
                     />
                   </div>
@@ -176,7 +176,7 @@ export const Checkout: React.FC = () => {
                       placeholder="10-digit number"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-xs focus:outline-none focus:ring-1 focus:ring-[#2874F0]"
+                      className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-xs focus:outline-none focus:ring-1 focus:ring-[#7C3AED]"
                       required
                     />
                   </div>
@@ -192,7 +192,7 @@ export const Checkout: React.FC = () => {
                     placeholder="6-digit PIN code"
                     value={pincode}
                     onChange={(e) => setPincode(e.target.value)}
-                    className="w-full px-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-xs focus:outline-none focus:ring-1 focus:ring-[#2874F0]"
+                    className="w-full px-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-xs focus:outline-none focus:ring-1 focus:ring-[#7C3AED]"
                     required
                   />
                 </div>
@@ -206,7 +206,7 @@ export const Checkout: React.FC = () => {
                     placeholder="Karnataka, Maharashtra etc"
                     value={state}
                     onChange={(e) => setState(e.target.value)}
-                    className="w-full px-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-xs focus:outline-none focus:ring-1 focus:ring-[#2874F0]"
+                    className="w-full px-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-xs focus:outline-none focus:ring-1 focus:ring-[#7C3AED]"
                     required
                   />
                 </div>
@@ -223,7 +223,7 @@ export const Checkout: React.FC = () => {
                       placeholder="Apartment name, street, locality"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-xs focus:outline-none focus:ring-1 focus:ring-[#2874F0]"
+                      className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-xs focus:outline-none focus:ring-1 focus:ring-[#7C3AED]"
                       required
                     />
                   </div>
@@ -239,7 +239,7 @@ export const Checkout: React.FC = () => {
                     placeholder="Bengaluru, Pune etc"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    className="w-full px-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-xs focus:outline-none focus:ring-1 focus:ring-[#2874F0]"
+                    className="w-full px-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-xs focus:outline-none focus:ring-1 focus:ring-[#7C3AED]"
                     required
                   />
                 </div>
@@ -250,7 +250,7 @@ export const Checkout: React.FC = () => {
             {/* Order summary listing */}
             <div className="bg-white rounded-lg shadow-sm border border-slate-100 p-5">
               <h2 className="text-slate-800 font-extrabold text-sm mb-4 flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5 text-[#2874F0]" />
+                <ShoppingBag className="w-5 h-5 text-[#7C3AED]" />
                 2. Order Summary
               </h2>
 
@@ -312,11 +312,11 @@ export const Checkout: React.FC = () => {
             {/* Payment Method callout */}
             <div className="mb-6 p-3 bg-slate-50 rounded border border-slate-150 text-[11px] text-slate-500 space-y-1.5 font-medium">
               <p className="font-bold text-slate-700 flex items-center gap-1 text-[11px]">
-                <CreditCard className="w-3.5 h-3.5 text-[#2874F0]" />
+                <CreditCard className="w-3.5 h-3.5 text-[#7C3AED]" />
                 Selected Payment Mode
               </p>
               <label className="flex items-center gap-2 cursor-pointer text-slate-700 font-bold">
-                <input type="radio" checked readOnly className="accent-[#2874F0]" />
+                <input type="radio" checked readOnly className="accent-[#7C3AED]" />
                 Cash On Delivery (COD) / Pay on Arrival
               </label>
               <p className="font-light text-slate-400">Due to sandboxed simulation bounds, Cod is currently the exclusive activated gateway.</p>

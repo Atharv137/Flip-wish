@@ -44,8 +44,8 @@ export const Login: React.FC = () => {
         className="w-full max-w-md bg-white rounded-lg shadow-lg overflow-hidden border border-slate-100 flex flex-col md:flex-row"
       >
         
-        {/* Banner Section (Flipkart Blue Banner) */}
-        <div className="bg-[#2874F0] text-white p-8 md:w-2/5 flex flex-col justify-between">
+        {/* Banner Section */}
+        <div className="bg-[#7C3AED] text-white p-8 md:w-2/5 flex flex-col justify-between">
           <div>
             <h2 className="text-2xl font-bold italic">Login</h2>
             <p className="text-xs text-slate-100 font-light mt-3 leading-relaxed">
@@ -55,7 +55,7 @@ export const Login: React.FC = () => {
           <div className="hidden md:flex items-center gap-1.5 opacity-90 mt-10">
             <ShoppingBag className="w-6 h-6 text-[#FFE500]" />
             <span className="font-extrabold text-sm italic">
-              Flip<span className="text-[#FFE500]">Wish</span>
+              Electro<span className="text-[#FFE500]">mart</span>
             </span>
           </div>
         </div>
@@ -76,7 +76,7 @@ export const Login: React.FC = () => {
                   placeholder="Enter email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:ring-1 focus:ring-[#2874F0] focus:border-[#2874F0]"
+                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:ring-1 focus:ring-[#7C3AED] focus:border-[#7C3AED]"
                   required
                 />
               </div>
@@ -94,7 +94,7 @@ export const Login: React.FC = () => {
                   placeholder="Enter password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-9 pr-10 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:ring-1 focus:ring-[#2874F0] focus:border-[#2874F0]"
+                  className="w-full pl-9 pr-10 py-2 border border-slate-200 rounded text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:ring-1 focus:ring-[#7C3AED] focus:border-[#7C3AED]"
                   required
                 />
                 <button
@@ -114,7 +114,7 @@ export const Login: React.FC = () => {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="rounded border-slate-300 text-[#2874F0] focus:ring-[#2874F0] w-3.5 h-3.5 accent-[#2874F0]"
+                  className="rounded border-slate-300 text-[#7C3AED] focus:ring-[#7C3AED] w-3.5 h-3.5 accent-[#7C3AED]"
                 />
                 <span>Remember Me</span>
               </label>
@@ -122,9 +122,9 @@ export const Login: React.FC = () => {
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  addToast("Demo mode: Please register a new account if you forgot your credentials.", "info");
+                  addToast("Please contact support or register a new account if you forgot your password.", "info");
                 }}
-                className="text-[#2874F0] hover:underline"
+                className="text-[#7C3AED] hover:underline"
               >
                 Forgot Password?
               </a>
@@ -150,23 +150,12 @@ export const Login: React.FC = () => {
           {/* Create account link */}
           <div className="mt-6 text-center border-t border-slate-100 pt-5">
             <p className="text-slate-500 text-xs">
-              New to FlipWish?{" "}
-              <Link to="/signup" className="text-[#2874F0] font-bold hover:underline">
+              New to Electromart?{" "}
+              <Link to="/signup" className="text-[#7C3AED] font-bold hover:underline">
                 Create an account
               </Link>
             </p>
           </div>
-
-          {/* Quick Demo Login details */}
-          <div className="mt-5 bg-slate-50 border border-slate-100 rounded p-3 text-[11px] text-slate-500">
-            <p className="font-bold text-slate-600 mb-1">Quick Demo Note:</p>
-            <p>You can sign up directly. Or use our sample administrator details for instant testing:</p>
-            <div className="mt-1 font-mono text-slate-700 bg-white p-1.5 rounded border border-slate-200/50 flex flex-col gap-0.5">
-              <span>Email: admin@flipwish.com</span>
-              <span>Pass: admin123</span>
-            </div>
-          </div>
-
         </div>
 
       </motion.div>

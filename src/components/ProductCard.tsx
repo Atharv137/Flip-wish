@@ -115,7 +115,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </span>
 
           {/* Title */}
-          <h4 className="text-slate-800 text-sm font-medium line-clamp-2 hover:text-[#2874F0] leading-snug mb-1.5 transition-colors">
+          <h4 className="text-slate-800 text-sm font-medium line-clamp-2 hover:text-[#7C3AED] leading-snug mb-1.5 transition-colors">
             {product.title}
           </h4>
 
@@ -163,7 +163,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             isOutOfStock
               ? "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
               : isInCart
-              ? "bg-[#FFE500] hover:bg-[#ebd200] text-[#2874F0]"
+              ? "bg-[#FFE500] hover:bg-[#ebd200] text-[#7C3AED]"
               : "bg-[#FB641B] hover:bg-[#e0540d] text-white"
           }`}
         >

@@ -13,7 +13,7 @@ export const Footer: React.FC = () => {
             <li><a href="#" className="hover:underline hover:text-white transition-colors">Contact Us</a></li>
             <li><a href="#" className="hover:underline hover:text-white transition-colors">About Us</a></li>
             <li><a href="#" className="hover:underline hover:text-white transition-colors">Careers</a></li>
-            <li><a href="#" className="hover:underline hover:text-white transition-colors">FlipWish Stories</a></li>
+            <li><a href="#" className="hover:underline hover:text-white transition-colors">Electromart Stories</a></li>
             <li><a href="#" className="hover:underline hover:text-white transition-colors">Press Releases</a></li>
           </ul>
         </div>
@@ -49,7 +49,7 @@ export const Footer: React.FC = () => {
             <div className="flex items-start gap-2">
               <MapPin className="w-4 h-4 text-[#FFE500] shrink-0" />
               <p className="leading-tight text-slate-400">
-                FlipWish Internet Private Ltd,<br />
+                Electromart Internet Private Ltd,<br />
                 Buildings Alyssa, Begonia & Clove Tech Village,<br />
                 Outer Ring Road, Bengaluru, 560103, Karnataka, India
               </p>
@@ -60,7 +60,7 @@ export const Footer: React.FC = () => {
             </div>
             <div className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-[#FFE500]" />
-              <span>support@flipwish.com</span>
+              <span>support@electromart.com</span>
             </div>
           </div>
         </div>
@@ -87,7 +87,7 @@ export const Footer: React.FC = () => {
 
         {/* Copyright */}
         <div className="text-slate-500 font-normal">
-          &copy; 2026 FlipWish.com. Inspired by Flipkart. All rights reserved.
+          &copy; 2026 Electromart.com. Inspired by Flipkart. All rights reserved.
         </div>
 
       </div>

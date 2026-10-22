@@ -6,6 +6,7 @@ export interface User {
   name: string;
   email: string;
   passwordHash: string;
+  role?: "admin" | "customer";
 }
 
 export interface Product {
@@ -468,6 +469,33 @@ class LocalDatabase {
         this.data.carts = [];
         this.save();
       }
+
+      // Ensure designated admin hargudetejas17@gmail.com exists with password 123456 and admin role
+      const adminEmail = "hargudetejas17@gmail.com";
+      const adminHash = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"; // sha256 for 123456
+      const existingAdmin = this.data.users.find(u => u.email.toLowerCase() === adminEmail.toLowerCase());
+      if (existingAdmin) {
+        existingAdmin.role = "admin";
+        existingAdmin.passwordHash = adminHash;
+      } else {
+        this.data.users.push({
+          id: "u_admin_tejas",
+          name: "Tejas Hargude",
+          email: adminEmail,
+          passwordHash: adminHash,
+          role: "admin"
+        });
+      }
+
+      // Enforce that only hargudetejas17@gmail.com has admin role; all other users have customer role
+      this.data.users.forEach(u => {
+        if (u.email.toLowerCase() === adminEmail.toLowerCase()) {
+          u.role = "admin";
+        } else {
+          u.role = "customer";
+        }
+      });
+      this.save();
     } catch (error) {
       console.error("Failed to initialize JSON database:", error);
       this.data.products = [...DEFAULT_PRODUCTS];
@@ -494,8 +522,10 @@ class LocalDatabase {
     },
     insert: (user: Omit<User, "id">): User => {
       this.initialize();
+      const isAdminEmail = user.email.toLowerCase() === "hargudetejas17@gmail.com";
       const newUser: User = {
         ...user,
+        role: isAdminEmail ? "admin" : "customer",
         id: "u_" + Math.random().toString(36).substr(2, 9)
       };
       this.data.users.push(newUser);

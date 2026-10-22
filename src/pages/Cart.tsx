@@ -42,7 +42,7 @@ export const Cart: React.FC = () => {
   if (loading) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-12 flex flex-col items-center justify-center min-h-[300px]">
-        <Loader2 className="w-8 h-8 text-[#2874F0] animate-spin" />
+        <Loader2 className="w-8 h-8 text-[#7C3AED] animate-spin" />
         <span className="text-xs text-slate-500 font-medium mt-3">Loading your shopping cart...</span>
       </div>
     );
@@ -68,7 +68,7 @@ export const Cart: React.FC = () => {
             </p>
             <Link
               to="/"
-              className="bg-[#2874F0] hover:bg-[#1b62db] text-white text-xs font-bold px-8 py-2.5 rounded shadow cursor-pointer transition-colors"
+              className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold px-8 py-2.5 rounded shadow cursor-pointer transition-colors"
             >
               EXPLORE OFFERS
             </Link>
@@ -81,7 +81,7 @@ export const Cart: React.FC = () => {
             <div className="flex-1 w-full bg-white rounded-lg shadow-sm border border-slate-100 overflow-hidden">
               <div className="p-4 border-b border-slate-100 bg-slate-50/50">
                 <h1 className="text-slate-800 font-bold text-sm">
-                  FlipWish Shopping Cart ({cart.length} Items)
+                  Electromart Shopping Cart ({cart.length} Items)
                 </h1>
               </div>
 
@@ -113,7 +113,7 @@ export const Cart: React.FC = () => {
                           </span>
                           <Link
                             to={`/product/${item.productId}`}
-                            className="text-slate-800 text-sm font-medium line-clamp-1 hover:text-[#2874F0] leading-snug transition-colors block"
+                            className="text-slate-800 text-sm font-medium line-clamp-1 hover:text-[#7C3AED] leading-snug transition-colors block"
                           >
                             {item.product.title}
                           </Link>
@@ -131,7 +131,7 @@ export const Cart: React.FC = () => {
                           </div>
                           
                           <p className="text-[10px] text-slate-400 mt-1">
-                            Seller: FlipWish Retail Core Authorized
+                            Seller: Electromart Retail Core Authorized
                           </p>
                         </div>
                       </div>
