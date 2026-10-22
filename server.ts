@@ -42,7 +42,11 @@ async function startServer() {
     });
   }
 
-  await connectDB();
+  try {
+    await connectDB();
+  } catch (dbError) {
+    console.warn("Database initialization notice:", dbError);
+  }
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);

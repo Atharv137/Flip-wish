@@ -5,6 +5,12 @@ import { useCartWishlist } from "../context/CartWishlistContext";
 import { useAuth } from "../context/AuthContext";
 import { LayoutDashboard, Plus, Pencil, Trash2, CheckCircle, Package, AlertTriangle, Image as ImageIcon, Search, RefreshCw, X, HelpCircle, ShieldAlert, ArrowLeft, Lock, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import {
+  fetchProducts,
+  createProductInFirestore,
+  updateProductInFirestore,
+  deleteProductInFirestore
+} from "../services/productsService";
 
 const CATEGORIES = [
   "Smartphones",
@@ -68,11 +74,8 @@ export const AdminDashboard: React.FC = () => {
   const fetchAllProducts = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/products?limit=100"); // fetch all
-      if (res.ok) {
-        const data = await res.json();
-        setProducts(data.products);
-      }
+      const data = await fetchProducts({ limit: 100 });
+      setProducts(data.products);
     } catch (err) {
       console.error("Failed to fetch products on Admin Dashboard:", err);
     } finally {
@@ -142,33 +145,28 @@ export const AdminDashboard: React.FC = () => {
     };
 
     try {
-      const token = localStorage.getItem("flipkart_token");
-      const url = editingProduct ? `/api/products/${editingProduct.id}` : "/api/products";
-      const method = editingProduct ? "PATCH" : "POST";
-
-      const res = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        addToast(editingProduct ? "Product updated successfully!" : "Product created successfully!", "success");
-        if (editingProduct && payload.stock !== editingProduct.stock) {
+      if (editingProduct) {
+        await updateProductInFirestore(editingProduct.id, payload);
+        addToast("Product updated successfully in Firestore!", "success");
+        if (payload.stock !== editingProduct.stock) {
           addToast("Stock updated! Synchronizing users' wishlists...", "info");
         }
-        resetForm();
-        setShowAddForm(false);
-        await fetchAllProducts();
       } else {
-        addToast(data.error || "Save operation failed", "error");
+        const fullPayload = {
+          ...payload,
+          discount: Math.round(((payload.originalPrice - payload.price) / payload.originalPrice) * 100),
+          rating: 4.5,
+          reviews: 1,
+          deliveryDate: "2-4 Business Days"
+        };
+        await createProductInFirestore(fullPayload);
+        addToast("Product created successfully in Firestore!", "success");
       }
+      resetForm();
+      setShowAddForm(false);
+      await fetchAllProducts();
     } catch (err) {
-      addToast("Network error. Could not save product.", "error");
+      addToast("Failed to save product to Firestore.", "error");
     }
   };
 
@@ -178,23 +176,11 @@ export const AdminDashboard: React.FC = () => {
     }
 
     try {
-      const token = localStorage.getItem("flipkart_token");
-      const res = await fetch(`/api/products/${productId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        addToast("Product deleted successfully!", "success");
-        await fetchAllProducts();
-      } else {
-        addToast(data.error || "Delete operation failed", "error");
-      }
+      await deleteProductInFirestore(productId);
+      addToast("Product deleted successfully!", "success");
+      await fetchAllProducts();
     } catch (err) {
-      addToast("Network error. Could not delete product.", "error");
+      addToast("Could not delete product.", "error");
     }
   };
 

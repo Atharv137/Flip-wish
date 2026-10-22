@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "users": {
+      "title": "User Profile",
+      "description": "User profiles managed through Firebase Authentication and Cloud Firestore",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "User UID matching auth.uid" },
+        "name": { "type": "string", "description": "Full name of the user" },
+        "email": { "type": "string", "format": "email", "description": "User email address" },
+        "role": { "type": "string", "enum": ["admin", "customer"], "description": "Access control role" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account registration timestamp" }
+      },
+      "required": ["id", "email", "role"]
+    },
+    "products": {
+      "title": "Product Catalog",
+      "description": "Electronics product catalog item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Product identifier" },
+        "title": { "type": "string", "description": "Product title" },
+        "description": { "type": "string", "description": "Detailed specifications and highlights" },
+        "brand": { "type": "string", "description": "Brand manufacturer name" },
+        "category": { "type": "string", "description": "Category slug or display name" },
+        "price": { "type": "number", "description": "Discounted current price in INR" },
+        "discount": { "type": "number", "description": "Discount percentage" },
+        "originalPrice": { "type": "number", "description": "Original MRP price in INR" },
+        "image": { "type": "string", "format": "uri", "description": "Primary high-resolution image URL" },
+        "rating": { "type": "number", "description": "Average review score from 1 to 5" },
+        "reviews": { "type": "number", "description": "Count of customer reviews" },
+        "stock": { "type": "number", "description": "Available inventory units" },
+        "deliveryDate": { "type": "string", "description": "Estimated delivery date text" }
+      },
+      "required": ["title", "price", "stock", "category"]
+    },
+    "wishlists": {
+      "title": "Wishlist Item",
+      "description": "Wishlist records saved by authenticated users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Wishlist document ID" },
+        "userId": { "type": "string", "description": "Owner auth UID" },
+        "productId": { "type": "string", "description": "Reference to product ID" },
+        "addedAt": { "type": "string", "format": "date-time", "description": "When the item was added" },
+        "product": { "type": "object", "description": "Cached product snapshot" }
+      },
+      "required": ["userId", "productId"]
+    },
+    "cart_items": {
+      "title": "Cart Item",
+      "description": "Shopping cart items saved per user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Cart item document ID" },
+        "userId": { "type": "string", "description": "Owner auth UID" },
+        "productId": { "type": "string", "description": "Reference to product ID" },
+        "quantity": { "type": "number", "description": "Cart quantity" },
+        "product": { "type": "object", "description": "Cached product snapshot" }
+      },
+      "required": ["userId", "productId", "quantity"]
+    },
+    "orders": {
+      "title": "Customer Order",
+      "description": "Completed checkout orders",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Order identifier" },
+        "userId": { "type": "string", "description": "Customer auth UID" },
+        "items": { "type": "array", "description": "Order item line snapshots" },
+        "totalAmount": { "type": "number", "description": "Total final paid amount" },
+        "shippingAddress": { "type": "object", "description": "Shipping recipient address" },
+        "status": { "type": "string", "enum": ["placed", "processing", "shipped", "delivered"], "description": "Order status" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Order placement timestamp" }
+      },
+      "required": ["userId", "items", "totalAmount", "status"]
+    }
+  }
+}

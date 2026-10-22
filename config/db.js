@@ -3,12 +3,19 @@ import { config } from "../server/config/env";
 
 const connectDB = async () => {
     try {
-        await mongoose.connect(config.mongoUri);
+        if (!config.mongoUri) {
+            console.log("No MongoDB URI provided. Running with local database fallback.");
+            return;
+        }
+        await mongoose.connect(config.mongoUri, {
+            serverSelectionTimeoutMS: 5000,
+        });
         console.log("MongoDB Connected");
     } catch (err) {
-        console.log(err.message);
-        process.exit(1);
+        console.warn("MongoDB Connection Warning:", err.message);
+        // Do not call process.exit(1) so the HTTP server continues running
     }
 };
 
 export default connectDB;
+

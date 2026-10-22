@@ -47,7 +47,7 @@ export const Checkout: React.FC = () => {
     }
 
     setLoading(true);
-    const success = await checkoutCart();
+    const success = await checkoutCart({ name, phone, pincode, address, city, state });
     setLoading(false);
 
     if (success) {

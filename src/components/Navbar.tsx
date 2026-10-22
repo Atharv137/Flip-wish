@@ -1,45 +1,18 @@
 import React, { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useEffect } from "react";
-import { useSearchDebounce } from "../hooks/useSearchDebounce";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCartWishlist } from "../context/CartWishlistContext";
-import { Heart, ShoppingCart, User, LogOut, LayoutDashboard, Search, ShoppingBag } from "lucide-react";
+import { Heart, ShoppingCart, User, LogOut, LayoutDashboard, ShoppingBag } from "lucide-react";
+import { ProductSearchBar } from "./ProductSearchBar";
 
 export const Navbar: React.FC = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const { wishlist, cart } = useCartWishlist();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
   
-  const [searchVal, setSearchVal] = useState(searchParams.get("search") || "");
   const [profileOpen, setProfileOpen] = useState(false);
-  
-  const debouncedSearch = useSearchDebounce(searchVal, 600);
-
-  useEffect(() => {
-    // Automatically navigate on debounce
-    const currentSearch = searchParams.get("search") || "";
-    if (debouncedSearch.trim() !== currentSearch) {
-      if (debouncedSearch.trim()) {
-        navigate(`/?search=${encodeURIComponent(debouncedSearch.trim())}`);
-      } else if (debouncedSearch === "" && currentSearch !== "") {
-        navigate("/");
-      }
-    }
-  }, [debouncedSearch, navigate, searchParams]);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchVal.trim()) {
-      navigate(`/?search=${encodeURIComponent(searchVal.trim())}`);
-    } else {
-      navigate("/");
-    }
-  };
 
   const handleLogoClick = () => {
-    setSearchVal("");
     navigate("/");
   };
 
@@ -65,22 +38,12 @@ export const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* Search Bar */}
-          <form onSubmit={handleSearchSubmit} className="flex-1 max-w-xl relative hidden sm:block">
-            <input
-              type="text"
-              placeholder="Search for products, brands and categories..."
-              value={searchVal}
-              onChange={(e) => setSearchVal(e.target.value)}
-              className="w-full bg-white text-slate-800 placeholder-slate-400 pl-4 pr-10 py-2 rounded shadow-inner text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE500] transition-all"
-            />
-            <button
-              type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#7C3AED] cursor-pointer"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-          </form>
+          {/* Desktop Search Bar with Search History */}
+          <ProductSearchBar
+            variant="desktop"
+            placeholder="Search for products, brands and categories..."
+            className="flex-1 max-w-xl hidden sm:block"
+          />
 
           {/* Action Links */}
           <div className="flex items-center gap-6 shrink-0">
@@ -118,7 +81,7 @@ export const Navbar: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="bg-white text-[#7C3AED] hover:bg-slate-5 px-4 py-1.5 rounded font-bold text-sm flex items-center gap-1.5 shadow-sm transition-all focus:outline-none cursor-pointer"
+                  className="bg-white text-[#7C3AED] hover:bg-slate-50 px-4 py-1.5 rounded font-bold text-sm flex items-center gap-1.5 shadow-sm transition-all focus:outline-none cursor-pointer"
                 >
                   <User className="w-4 h-4" />
                   <span className="max-w-[80px] truncate">{user?.name}</span>
@@ -134,11 +97,11 @@ export const Navbar: React.FC = () => {
                         <div className="flex items-center justify-between mb-0.5">
                           <p className="text-[11px] text-slate-400">Signed in as</p>
                           {isAdmin ? (
-                            <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.2 rounded uppercase tracking-wider">
+                            <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
                               Admin
                             </span>
                           ) : (
-                            <span className="bg-slate-200 text-slate-600 text-[10px] font-medium px-1.5 py-0.2 rounded uppercase tracking-wider">
+                            <span className="bg-slate-200 text-slate-600 text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider">
                               Shopper
                             </span>
                           )}
@@ -174,7 +137,7 @@ export const Navbar: React.FC = () => {
             ) : (
               <Link
                 to="/login"
-                className="bg-white text-[#7C3AED] hover:bg-slate-5 px-6 py-1.5 rounded font-extrabold text-sm shadow-sm transition-all text-center block"
+                className="bg-white text-[#7C3AED] hover:bg-slate-50 px-6 py-1.5 rounded font-extrabold text-sm shadow-sm transition-all text-center block"
               >
                 Login
               </Link>
@@ -184,23 +147,13 @@ export const Navbar: React.FC = () => {
         </div>
       </div>
       
-      {/* Mobile Search Bar Row */}
+      {/* Mobile Search Bar Row with Search History */}
       <div className="sm:hidden px-4 pb-3 pt-1 border-t border-[#6D28D9]">
-        <form onSubmit={handleSearchSubmit} className="relative">
-          <input
-            type="text"
-            placeholder="Search for products, brands..."
-            value={searchVal}
-            onChange={(e) => setSearchVal(e.target.value)}
-            className="w-full bg-white text-slate-800 placeholder-slate-400 pl-4 pr-10 py-1.5 rounded shadow-inner text-xs focus:outline-none focus:ring-1 focus:ring-[#FFE500]"
-          />
-          <button
-            type="submit"
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"
-          >
-            <Search className="w-4 h-4" />
-          </button>
-        </form>
+        <ProductSearchBar
+          variant="mobile"
+          placeholder="Search for products, brands..."
+          className="w-full"
+        />
       </div>
     </nav>
   );

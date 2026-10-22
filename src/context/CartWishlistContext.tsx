@@ -1,7 +1,21 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
-import { WishlistItem, CartItem, Product } from "../types";
+import { WishlistItem, CartItem } from "../types";
 import { useAuth } from "./AuthContext";
-import { API_URL } from "../config";
+import {
+  getUserWishlist,
+  addToUserWishlist,
+  removeFromUserWishlist,
+  checkWishlistStockLive
+} from "../services/wishlistService";
+import {
+  getUserCart,
+  addToUserCart,
+  updateUserCartItemQuantity,
+  removeFromUserCart,
+  checkoutUserCart,
+  ShippingAddress
+} from "../services/cartService";
+import { fetchProductById } from "../services/productsService";
 
 export interface ToastMessage {
   id: string;
@@ -16,22 +30,22 @@ interface CartWishlistContextType {
   toasts: ToastMessage[];
   addToast: (text: string, type: "success" | "error" | "warning" | "info") => void;
   removeToast: (id: string) => void;
-  
+
   // Wishlist Actions
   fetchWishlist: () => Promise<void>;
   addToWishlist: (productId: string) => Promise<boolean>;
   removeFromWishlist: (wishlistOrProductId: string) => Promise<boolean>;
-  
+
   // Cart Actions
   fetchCart: () => Promise<void>;
   addToCart: (productId: string, quantity?: number) => Promise<boolean>;
   updateCartQuantity: (cartItemId: string, newQty: number) => Promise<boolean>;
   removeFromCart: (cartItemId: string) => Promise<boolean>;
-  
+
   // Unified Operations
   moveToCart: (item: WishlistItem) => Promise<void>;
-  checkoutCart: () => Promise<boolean>;
-  
+  checkoutCart: (shippingAddress?: ShippingAddress) => Promise<boolean>;
+
   // Trigger manual stock check
   checkLatestStock: () => Promise<void>;
 }
@@ -39,7 +53,7 @@ interface CartWishlistContextType {
 const CartWishlistContext = createContext<CartWishlistContextType | undefined>(undefined);
 
 export const CartWishlistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { token, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -49,10 +63,9 @@ export const CartWishlistProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   // Custom Toast helper
   const addToast = (text: string, type: "success" | "error" | "warning" | "info" = "success") => {
-    const id = Math.random().toString(36).substr(2, 9);
+    const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { id, type, text }]);
-    
-    // Auto remove after 4 seconds
+
     setTimeout(() => {
       removeToast(id);
     }, 4000);
@@ -62,100 +75,80 @@ export const CartWishlistProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  // Auth header helper
-  const getHeaders = () => {
-    return {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    };
-  };
-
-  // --- Fetch Operations ---
+  // --- Fetch Operations with Firestore ---
   const fetchWishlist = async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !user?.id) return;
     try {
-      const res = await fetch(`${API_URL}/api/wishlist`, { headers: getHeaders() });
-      if (res.ok) {
-        const data = await res.json();
-        setWishlist(data);
-      }
+      const items = await getUserWishlist(user.id);
+      setWishlist(items);
     } catch (err) {
       console.error("Error fetching wishlist:", err);
     }
   };
 
   const fetchCart = async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !user?.id) return;
     try {
-      const res = await fetch(`${API_URL}/api/cart`, { headers: getHeaders() });
-      if (res.ok) {
-        const data = await res.json();
-        // The API returns { cartItems: [...], summary: {...} }
-        setCart(data.cartItems || []);
-      }
+      const items = await getUserCart(user.id);
+      setCart(items);
     } catch (err) {
       console.error("Error fetching cart:", err);
     }
   };
 
-  // Fetch both on authentication
+  // Fetch both when user authenticates
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user?.id) {
       setLoading(true);
       Promise.all([fetchWishlist(), fetchCart()]).finally(() => setLoading(false));
     } else {
       setWishlist([]);
       setCart([]);
     }
-  }, [isAuthenticated, token]);
+  }, [isAuthenticated, user?.id]);
 
   // --- Stock Polling ---
-  // Core Requirement: Every 30 seconds, only wishlist products check latest stock and automatically update UI without refreshing
+  // Audits wishlisted product stock every 30 seconds
   const checkLatestStock = async () => {
     if (wishlist.length === 0) return;
 
     try {
       const productIds = wishlist.map((item) => item.productId);
-      const res = await fetch(`${API_URL}/api/wishlist/check-stock`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productIds })
-      });
+      const stockMap = await checkWishlistStockLive(productIds);
 
-      if (res.ok) {
-        const { stockMap } = await res.json();
-        
-        setWishlist((currentWishlist) => {
-          let hasChanges = false;
-          const updated = currentWishlist.map((item) => {
-            const latest = stockMap[item.productId];
-            if (latest && (item.product.stock !== latest.stock || item.product.price !== latest.price)) {
-              hasChanges = true;
-              return {
-                ...item,
-                product: {
-                  ...item.product,
-                  stock: latest.stock,
-                  price: latest.price,
-                  originalPrice: latest.originalPrice
-                }
-              };
-            }
-            return item;
-          });
-
-          if (hasChanges) {
-            console.log("Stock levels refreshed for wishlisted items.");
+      setWishlist((currentWishlist) => {
+        let hasChanges = false;
+        const updated = currentWishlist.map((item) => {
+          const latest = stockMap[item.productId];
+          if (
+            latest &&
+            (item.product.stock !== latest.stock || item.product.price !== latest.price)
+          ) {
+            hasChanges = true;
+            return {
+              ...item,
+              product: {
+                ...item.product,
+                stock: latest.stock,
+                price: latest.price,
+                originalPrice: latest.originalPrice
+              }
+            };
           }
-          return updated;
+          return item;
         });
-      }
+
+        if (hasChanges) {
+          console.log("Stock levels refreshed for wishlisted items.");
+        }
+        return updated;
+      });
     } catch (err) {
       console.error("Error checking stock status:", err);
     }
   };
 
-  // Setting up 30-second interval for stock checks
+  // 30-second interval for stock checks
   useEffect(() => {
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
@@ -172,153 +165,135 @@ export const CartWishlistProvider: React.FC<{ children: React.ReactNode }> = ({ 
         clearInterval(pollingIntervalRef.current);
       }
     };
-  }, [wishlist.map(w => w.productId).join(","), isAuthenticated]);
+  }, [wishlist.map((w) => w.productId).join(","), isAuthenticated]);
 
   // --- Wishlist Actions ---
   const addToWishlist = async (productId: string): Promise<boolean> => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user?.id) {
       addToast("Please login to add items to wishlist", "warning");
       return false;
     }
     try {
-      const res = await fetch(`${API_URL}/api/wishlist`, {
-        method: "POST",
-        headers: getHeaders(),
-        body: JSON.stringify({ productId })
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        addToast(data.error || "Failed to add to wishlist", "error");
+      const product = await fetchProductById(productId);
+      if (!product) {
+        addToast("Product not found", "error");
         return false;
       }
 
+      const item = await addToUserWishlist(user.id, product);
+      setWishlist((prev) => [...prev.filter((w) => w.productId !== productId), item]);
       addToast("Added to Wishlist", "success");
-      await fetchWishlist(); // Refresh to get fully populated object
       return true;
     } catch (err) {
-      addToast("Network error. Could not add to wishlist.", "error");
+      addToast("Could not add to wishlist. Please try again.", "error");
       return false;
     }
   };
 
   const removeFromWishlist = async (wishlistOrProductId: string): Promise<boolean> => {
+    if (!user?.id) return false;
     try {
-      const res = await fetch(`${API_URL}/api/wishlist/${wishlistOrProductId}`, {
-        method: "DELETE",
-        headers: getHeaders()
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        addToast(data.error || "Failed to remove from wishlist", "error");
-        return false;
-      }
-
+      await removeFromUserWishlist(wishlistOrProductId, user.id);
       addToast("Removed from Wishlist", "info");
-      setWishlist((prev) => prev.filter((item) => item.id !== wishlistOrProductId && item.productId !== wishlistOrProductId));
+      setWishlist((prev) =>
+        prev.filter(
+          (item) =>
+            item.id !== wishlistOrProductId && item.productId !== wishlistOrProductId
+        )
+      );
       return true;
     } catch (err) {
-      addToast("Network error. Could not remove from wishlist.", "error");
+      addToast("Could not remove from wishlist.", "error");
       return false;
     }
   };
 
   // --- Cart Actions ---
   const addToCart = async (productId: string, quantity = 1): Promise<boolean> => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user?.id) {
       addToast("Please login to add items to cart", "warning");
       return false;
     }
     try {
-      const res = await fetch(`${API_URL}/api/cart`, {
-        method: "POST",
-        headers: getHeaders(),
-        body: JSON.stringify({ productId, quantity })
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        addToast(data.error || "Failed to add to cart", "error");
+      const product = await fetchProductById(productId);
+      if (!product) {
+        addToast("Product not found", "error");
         return false;
       }
 
+      if (product.stock <= 0) {
+        addToast("Product is currently out of stock", "error");
+        return false;
+      }
+
+      const item = await addToUserCart(user.id, product, quantity);
+      setCart((prev) => {
+        const existing = prev.find((c) => c.productId === productId);
+        if (existing) {
+          return prev.map((c) =>
+            c.productId === productId
+              ? { ...c, quantity: Math.min(product.stock, c.quantity + quantity) }
+              : c
+          );
+        }
+        return [...prev, item];
+      });
+
       addToast("Added to Cart", "success");
-      await fetchCart(); // Refresh cart items
       return true;
     } catch (err) {
-      addToast("Network error. Could not add to cart.", "error");
+      addToast("Could not add to cart. Please try again.", "error");
       return false;
     }
   };
 
   const updateCartQuantity = async (cartItemId: string, newQty: number): Promise<boolean> => {
+    if (!user?.id) return false;
     try {
-      const res = await fetch(`${API_URL}/api/cart/${cartItemId}`, {
-        method: "PATCH",
-        headers: getHeaders(),
-        body: JSON.stringify({ quantity: newQty })
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        addToast(data.error || "Failed to update quantity", "error");
-        return false;
-      }
-
+      await updateUserCartItemQuantity(cartItemId, newQty, user.id);
       addToast("Quantity Updated", "success");
       setCart((prev) =>
         prev.map((item) => (item.id === cartItemId ? { ...item, quantity: newQty } : item))
       );
       return true;
     } catch (err) {
-      addToast("Network error. Could not update quantity.", "error");
+      addToast("Could not update quantity.", "error");
       return false;
     }
   };
 
   const removeFromCart = async (cartItemId: string): Promise<boolean> => {
+    if (!user?.id) return false;
     try {
-      const res = await fetch(`${API_URL}/api/cart/${cartItemId}`, {
-        method: "DELETE",
-        headers: getHeaders()
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        addToast(data.error || "Failed to remove from cart", "error");
-        return false;
-      }
-
+      await removeFromUserCart(cartItemId, user.id);
       addToast("Item Removed", "info");
       setCart((prev) => prev.filter((item) => item.id !== cartItemId));
       return true;
     } catch (err) {
-      addToast("Network error. Could not remove from cart.", "error");
+      addToast("Could not remove from cart.", "error");
       return false;
     }
   };
 
-  // --- Core Requirement: Optimistic UI Move-to-Cart Operation ---
-  // Workflow:
-  // Wishlist -> Click Move To Cart -> Immediately Remove Item -> Backend API
-  // -> If Success: Keep Item In Cart -> If Failure: Restore Wishlist Item & Show Error Toast
+  // --- Optimistic UI Move-to-Cart Operation ---
   const moveToCart = async (item: WishlistItem) => {
-    // 1. Guard check: Reject immediately if product is known to be out of stock
     if (item.product.stock <= 0) {
       addToast("Out Of Stock! Cannot add item to cart.", "error");
       return;
     }
 
-    // 2. Capture baseline states for potential rollbacks
+    if (!user?.id) {
+      addToast("Please login to move items to cart", "warning");
+      return;
+    }
+
+    // Capture baseline states for rollback
     const previousWishlist = [...wishlist];
     const previousCart = [...cart];
 
-    // 3. Optimistic Updates
-    // Immediately remove item from wishlist state
+    // Optimistic Updates
     setWishlist((prev) => prev.filter((w) => w.id !== item.id));
 
-    // Optimistically add to cart state (if not already there)
     const alreadyInCart = cart.find((c) => c.productId === item.productId);
     if (alreadyInCart) {
       setCart((prev) =>
@@ -330,7 +305,7 @@ export const CartWishlistProvider: React.FC<{ children: React.ReactNode }> = ({ 
       );
     } else {
       const optimisticCartItem: CartItem = {
-        id: "optimistic_" + Math.random().toString(36).substr(2, 9),
+        id: "optimistic_" + Math.random().toString(36).substring(2, 9),
         userId: item.userId,
         productId: item.productId,
         quantity: 1,
@@ -339,70 +314,40 @@ export const CartWishlistProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setCart((prev) => [...prev, optimisticCartItem]);
     }
 
-    // Inform the user of optimistic initiation
     addToast("Moving item to cart...", "info");
 
     try {
-      // 4. Fire API calls: First add to cart, then remove from wishlist
-      const addRes = await fetch(`${API_URL}/api/cart`, {
-        method: "POST",
-        headers: getHeaders(),
-        body: JSON.stringify({ productId: item.productId, quantity: 1 })
-      });
+      // Perform database operations in Firestore
+      await addToUserCart(user.id, item.product, 1);
+      await removeFromUserWishlist(item.id, user.id);
 
-      const addData = await addRes.json();
-
-      if (!addRes.ok) {
-        // Backend Validation failed (e.g. Out Of Stock, or stock level changed)
-        throw new Error(addData.error || "Backend stock validation failed.");
-      }
-
-      // Now delete from wishlist in backend
-      const deleteRes = await fetch(`${API_URL}/api/wishlist/${item.id}`, {
-        method: "DELETE",
-        headers: getHeaders()
-      });
-
-      if (!deleteRes.ok) {
-        // Wishlist removal failed, but we've successfully added to cart. Re-fetch wishlist to stay sync.
-        await fetchWishlist();
-        await fetchCart();
-        addToast("Added to Cart", "success");
-        return;
-      }
-
-      // 5. Success! Re-fetch to synchronize real backend IDs
+      // Re-fetch to ensure fresh data
       await Promise.all([fetchWishlist(), fetchCart()]);
       addToast("Added To Cart & Removed From Wishlist", "success");
     } catch (err: any) {
-      // 6. Rollback triggered on error!
+      // Rollback on failure
       setWishlist(previousWishlist);
       setCart(previousCart);
-      addToast(err.message || "Out Of Stock", "error");
+      addToast(err.message || "Failed to move item to cart", "error");
       setTimeout(() => {
         addToast("Wishlist Restored", "info");
       }, 1000);
     }
   };
 
-  const checkoutCart = async (): Promise<boolean> => {
+  const checkoutCart = async (shippingAddress?: ShippingAddress): Promise<boolean> => {
+    if (!user?.id || cart.length === 0) {
+      addToast("Cart is empty", "warning");
+      return false;
+    }
+
     try {
-      const res = await fetch(`${API_URL}/api/cart/checkout`, {
-        method: "POST",
-        headers: getHeaders()
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        addToast(data.error || "Checkout failed", "error");
-        return false;
-      }
-
+      await checkoutUserCart(user.id, cart, shippingAddress);
       addToast("Order Placed Successfully!", "success");
       setCart([]);
       return true;
     } catch (err) {
-      addToast("Network error during checkout.", "error");
+      addToast("Checkout failed. Please try again.", "error");
       return false;
     }
   };

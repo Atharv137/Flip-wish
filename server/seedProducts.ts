@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import Product from "../models/Product.js";
-import connectDB from "./config/db.js";
+import connectDB from "../config/db.js";
 import { config } from "./config/env.js";
 
 const MONGO_URI = config.mongoUri;

@@ -5,6 +5,7 @@ import { useCartWishlist } from "../context/CartWishlistContext";
 import { Star, Heart, ShoppingCart, Truck, ShieldCheck, RefreshCw, Award, ArrowLeft } from "lucide-react";
 import { motion } from "motion/react";
 import { API_URL } from "../config";
+import { fetchProductById } from "../services/productsService";
 
 interface Recommendation {
   name: string;
@@ -26,12 +27,12 @@ export const ProductDetails: React.FC = () => {
   // Fetch product detail
   useEffect(() => {
     const fetchProduct = async () => {
+      if (!id) return;
       setLoading(true);
       try {
-        const res = await fetch(`${API_URL}/api/products/${id}`);
-        if (res.ok) {
-          const data = await res.json();
-          setProduct(data);
+        const found = await fetchProductById(id);
+        if (found) {
+          setProduct(found);
         } else {
           addToast("Product not found", "error");
           navigate("/");

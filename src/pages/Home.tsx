@@ -6,6 +6,7 @@ import { SlidersHorizontal, ChevronLeft, ChevronRight, X, Sparkles, Flame, Perce
 import { motion, AnimatePresence } from "motion/react";
 import { API_URL } from "../config";
 import { simulateDataProcessingPromise } from "../utils/asyncHelpers";
+import { fetchProducts } from "../services/productsService";
 
 const CATEGORIES = [
   "All",
@@ -134,13 +135,20 @@ export const Home: React.FC = () => {
       console.log("Promise Utility Result:", asyncHelperResult);
 
       // --- JAVASCRIPT CONCEPT: ASYNC/AWAIT ---
-      // Real API call using async/await syntax naturally
-      const response = await fetch(`${API_URL}/api/products?${queryParams.toString()}`);
-      if (response.ok) {
-        const data = await response.json();
-        setProducts(data.products);
-        setPagination(data.pagination);
-      }
+      // Fetching products from Firebase Firestore / Catalog service
+      const data = await fetchProducts({
+        search: searchQuery,
+        category: selectedCategory,
+        brand: selectedBrands,
+        maxPrice,
+        rating: minRating,
+        inStockOnly,
+        sortBy,
+        page,
+        limit: 8
+      });
+      setProducts(data.products);
+      setPagination(data.pagination);
     } catch (err) {
       console.error("Failed to fetch products:", err);
     } finally {
@@ -169,6 +177,13 @@ export const Home: React.FC = () => {
     setSelectedBrands((prev) =>
       prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
     );
+  };
+
+  const handleClearSearch = () => {
+    setPage(1);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete("search");
+    setSearchParams(newParams);
   };
 
   const resetAllFilters = () => {
@@ -438,9 +453,15 @@ export const Home: React.FC = () => {
             </div>
 
             {/* Active filters summary */}
-            {(selectedBrands.length > 0 || maxPrice < 200000 || minRating > 0 || inStockOnly) && (
+            {(searchQuery || selectedBrands.length > 0 || maxPrice < 200000 || minRating > 0 || inStockOnly) && (
               <div className="flex flex-wrap items-center gap-2 mb-4 text-xs">
                 <span className="text-[#878787] font-medium">Active Filters:</span>
+                {searchQuery && (
+                  <span className="bg-purple-50 text-[#7C3AED] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 border border-purple-200">
+                    Search: "{searchQuery}"
+                    <X className="w-3 h-3 text-[#7C3AED] hover:text-rose-600 cursor-pointer" onClick={handleClearSearch} />
+                  </span>
+                )}
                 {selectedBrands.map((b) => (
                   <span key={b} className="bg-slate-100 text-slate-700 font-medium px-2 py-1 rounded-full flex items-center gap-1 border border-slate-200">
                     {b}

@@ -4,8 +4,16 @@ import { getProducts, getProductById, createProduct, updateProduct, deleteProduc
 import { getWishlist, addToWishlist, removeFromWishlist, checkWishlistStock } from "../controllers/wishlistController";
 import { getCart, addToCart, updateCartItem, deleteCartItem, checkout } from "../controllers/cartController";
 import { authMiddleware, adminMiddleware } from "../middleware/auth";
+import { getSystemHealth } from "../controllers/systemController";
+import { recommendProducts } from "../controllers/aiController";
 
 const router = Router();
+
+// --- Health Check ---
+router.get("/health", getSystemHealth);
+
+// --- AI Recommendations ---
+router.post("/ai/recommend", recommendProducts);
 
 // --- Authentication ---
 router.post("/signup", signup);
